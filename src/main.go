@@ -10,6 +10,14 @@ func main() {
 
 	fmt.Println("Hello World3!")
 	SetupBoard(&board)
+	fmt.Println(board)
+	board.board[1][0].move(&board, 2, 0)
+	fmt.Println(board)
+	board.board[0][0].move(&board, 6, 0)
+	fmt.Println(board)
+	board.board[6][3].move(&board, 2, 3)
+	board.board[1][2].move(&board, 3, 2)
+	fmt.Println(board)
 
 	// colorReset := "\033[0m"
 
