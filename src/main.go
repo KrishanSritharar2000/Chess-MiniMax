@@ -10,13 +10,21 @@ func main() {
 
 	fmt.Println("Hello World3!")
 	SetupBoard(&board)
+	// fmt.Println(board)
+	// board.board[1][0].move(&board, 2, 0)
 	fmt.Println(board)
-	board.board[1][0].move(&board, 2, 0)
+	board.board[0][1].move(&board, 2, 2)
 	fmt.Println(board)
-	board.board[0][0].move(&board, 6, 0)
-	fmt.Println(board)
-	board.board[6][3].move(&board, 2, 3)
-	board.board[1][2].move(&board, 3, 2)
+	board.board[2][2].move(&board, 4, 3)
+	board.board[7][1].move(&board, 5, 2)
+	board.board[5][2].move(&board, 5, 4)
+	board.board[4][3].move(&board, 5, 4)
+
+
+
+	// fmt.Println(board)
+	// board.board[6][3].move(&board, 2, 3)
+	// board.board[1][2].move(&board, 3, 2)
 	fmt.Println(board)
 
 	// colorReset := "\033[0m"

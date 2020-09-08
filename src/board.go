@@ -43,13 +43,14 @@ func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool{
 
 	
 	// If moved piece results in check return False
+	//Check by checking for check with this piece not in current position
 	//do these in this order
 	//if in check, check if moving piece fixes check
 	
 	allowedMoves := make([]Position, 0)
+	fmt.Println("XY", p.x, p.y, newX, newY)
 	switch p.symbol {
 		case "P":
-			fmt.Println("XY",p.x, p.y)
 			// If pawn in start position advance 2
 			if (p.x == 1 && !p.isBlack && b.isEmpty(p.x + 2, p.y)) {
 				allowedMoves = append(allowedMoves, Position{p.x + 2, p.y})
@@ -78,17 +79,93 @@ func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool{
 					allowedMoves = append(allowedMoves, Position{p.x - 1, p.y + 1})
 				}
 			}
-		// case "R":
-			
-		// case "H":
+		case "R":
+			//Up
+			counter := 1
+			for p.x + counter <= 7 && b.isEmpty(p.x + counter, p.y) {
+				allowedMoves = append(allowedMoves, Position{p.x + counter, p.y})
+				counter++
+			}
+			if p.x + counter <= 7 && b.board[p.x + counter][p.y].isBlack != p.isBlack {
+				allowedMoves = append(allowedMoves, Position{p.x + counter, p.y})
+			}
+			//Down
+			counter = 1
+			for p.x - counter >= 0 && b.isEmpty(p.x - counter, p.y) {
+				allowedMoves = append(allowedMoves, Position{p.x - counter, p.y})
+				counter++
+			}
+			if p.x - counter >= 0 && b.board[p.x - counter][p.y].isBlack != p.isBlack {
+				allowedMoves = append(allowedMoves, Position{p.x - counter, p.y})
+			}
+			//Right
+			counter = 1
+			for p.y + counter <= 7 && b.isEmpty(p.x, p.y + counter) {
+				allowedMoves = append(allowedMoves, Position{p.x, p.y + counter})
+				counter++
+			}
+			if p.y + counter <= 7 && b.board[p.x][p.y  + counter].isBlack != p.isBlack {
+				allowedMoves = append(allowedMoves, Position{p.x, p.y + counter})
+			}
+			//Left
+			counter = 1
+			for p.y - counter >= 0 && b.isEmpty(p.x, p.y - counter) {
+				allowedMoves = append(allowedMoves, Position{p.x, p.y - counter})
+				counter++
+			}
+			if p.y - counter >= 0 && b.board[p.x][p.y - counter].isBlack != p.isBlack {
+				allowedMoves = append(allowedMoves, Position{p.x, p.y - counter})
+			}
+		case "H":
+			//Up
+			if (p.x + 2 <= 7) {
+				if (p.y + 1 <= 7 && (b.isEmpty(p.x + 2, p.y + 1) || b.board[p.x + 2][p.y + 1].isBlack != p.isBlack)) {
+					allowedMoves = append(allowedMoves, Position{p.x + 2, p.y + 1})
+				} 
+				if (p.y - 1 >= 0 && (b.isEmpty(p.x + 2, p.y - 1) || b.board[p.x + 2][p.y - 1].isBlack != p.isBlack)) {
+					allowedMoves = append(allowedMoves, Position{p.x + 2, p.y - 1})
+				} 
+			} 
+			if (p.x - 2 >= 0) { // Down
+				if (p.y + 1 <= 7 && (b.isEmpty(p.x - 2, p.y + 1) || b.board[p.x - 2][p.y + 1].isBlack != p.isBlack)) {
+					allowedMoves = append(allowedMoves, Position{p.x - 2, p.y + 1})
+				} 
+				if (p.y - 1 >= 0 && (b.isEmpty(p.x - 2, p.y - 1) || b.board[p.x - 2][p.y - 1].isBlack != p.isBlack)) {
+					allowedMoves = append(allowedMoves, Position{p.x - 2, p.y - 1})
+				} 
+			} 
+			if (p.y + 2 <= 7) { //Right
+				if (p.x + 1 <= 7 && (b.isEmpty(p.x + 1, p.y + 2) || b.board[p.x + 1][p.y + 2].isBlack != p.isBlack)) {
+					allowedMoves = append(allowedMoves, Position{p.x + 1, p.y + 2})
+				} 
+				if (p.x - 1 >= 0 && (b.isEmpty(p.x - 1, p.y + 2) || b.board[p.x - 1][p.y + 2].isBlack != p.isBlack)) {
+					allowedMoves = append(allowedMoves, Position{p.x - 1, p.y + 2})
+				} 
+			} 
+			if (p.y - 2 >= 0) { // Left
+				if (p.x + 1 <= 7 && (b.isEmpty(p.x + 1, p.y - 2) || b.board[p.x + 1][p.y - 2].isBlack != p.isBlack)) {
+					allowedMoves = append(allowedMoves, Position{p.x + 1, p.y - 2})
+				} 
+				if (p.x - 1 >= 0 && (b.isEmpty(p.x - 1, p.y - 2) || b.board[p.x - 1][p.y - 2].isBlack != p.isBlack)) {
+					allowedMoves = append(allowedMoves, Position{p.x - 1, p.y - 2})
+				} 
+			}
+			 
+
+
 		// case "B":
 		// case "Q":
 		// case "K":
 		
 	}
 	fmt.Println("moves", allowedMoves)
-
-	return true
+	for _, val := range allowedMoves {
+		if val.x == newX && val.y == newY {
+			return true
+		}
+	}
+	fmt.Println("That is an invalid move")
+	return false
 }
 
 
@@ -96,8 +173,10 @@ func (p Piece) move(b *Board, newX, newY int) {
 	// Check if allowed move
 	if p.checkAllowedMoves(b, newX, newY) {
 		b.board[p.x][p.y] = Piece{p.x, p.y, " ", false}
+		p.x = newX
+		p.y = newY
 		b.board[newX][newY] = p
-		fmt.Println("Moved piece to ", newX, newY)
+		fmt.Println("Moved piece to ", newX, newY, p.x, p.y)
 	}
 	
 }
