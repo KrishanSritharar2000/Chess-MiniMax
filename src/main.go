@@ -26,6 +26,41 @@ func main() {
 	board.board[4][5].move(&board, 6, 4)
 	board.board[0][4].move(&board, 1, 3)
 	board.board[1][3].move(&board, 3, 3)
+	board.board[6][4].move(&board, 5, 4)
+	board.board[7][3].move(&board, 5, 5)
+	board.board[4][4].move(&board, 3, 4)
+	
+	fmt.Println("END Is black king currently in check: ", board.kingB.isCheck(&board))
+	fmt.Println("END Is white king currently in check: ", board.kingW.isCheck(&board))
+	board.board[3][4].move(&board, 2, 4)
+	board.board[1][3].move(&board, 2, 4)
+
+	board.board[5][5].move(&board, 5,6)
+	// board.board[4][4].move(&board, 3,5)
+	// board.board[3][5].move(&board, 2,5)
+	// board.board[3][4].move(&board, 3,3)
+	// board.board[3][3].move(&board, ,3)
+	// board.board[1][3].move(&board, 1,4)
+	// board.board[1][4].move(&board, 1,5)
+	// board.board[1][5].move(&board, 3,5)
+	board.board[7][6].move(&board, 5,5)
+	board.board[5][5].move(&board, 3,6)
+	board.board[3][6].move(&board, 5,7)
+	board.board[5][7].move(&board, 4,5)
+	board.board[4][5].move(&board, 3,3)
+	board.board[3][3].move(&board, 1,2)
+	board.board[1][2].move(&board, 0,4)
+	board.board[0][4].move(&board, 1,6)
+
+
+
+
+
+
+
+
+	fmt.Println("END Is black king currently in check: ", board.kingB.isCheck(&board))
+	fmt.Println("END Is white king currently in check: ", board.kingW.isCheck(&board))
 
 
 

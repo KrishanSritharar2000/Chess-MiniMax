@@ -60,6 +60,7 @@ func (p Piece) isCheck(b *Board) bool {
 		}
 	}
 	//Down
+	counter = 1
 	for p.x-counter >= 0 && b.isEmpty(p.x-counter, p.y) {
 		counter++
 	}
@@ -69,6 +70,7 @@ func (p Piece) isCheck(b *Board) bool {
 		}
 	}
 	//Right
+	counter = 1
 	for p.y+counter <= 7 && b.isEmpty(p.x, p.y+counter) {
 		counter++
 	}
@@ -78,6 +80,7 @@ func (p Piece) isCheck(b *Board) bool {
 		}
 	}
 	//Left
+	counter = 1
 	for p.y-counter >= 0 && b.isEmpty(p.x, p.y-counter) {
 		counter++
 	}
@@ -100,7 +103,8 @@ func (p Piece) isCheck(b *Board) bool {
 		}
 	}
 	//DownRight
-	for p.x-counter >= 0 && p.y+counter <= 7 && b.isEmpty(p.x-counter, p.y) {
+	counter = 1
+	for p.x-counter >= 0 && p.y+counter <= 7 && b.isEmpty(p.x-counter, p.y+counter) {
 		counter++
 	}
 	if p.x-counter >= 0 && p.y+counter <= 7 && b.board[p.x-counter][p.y+counter].isBlack != p.isBlack {
@@ -109,69 +113,89 @@ func (p Piece) isCheck(b *Board) bool {
 		}
 	}
 	//UpLeft
+	counter = 1
 	for p.x+counter <= 7 && p.y-counter >= 0 && b.isEmpty(p.x+counter, p.y-counter) {
 		counter++
 	}
-	if p.x+counter <= 7 && p.y-counter >= 7 && b.board[p.x+counter][p.y-counter].isBlack != p.isBlack {
+	if p.x+counter <= 7 && p.y-counter >= 0 && b.board[p.x+counter][p.y-counter].isBlack != p.isBlack {
 		if Contains(diagonal, b.board[p.x+counter][p.y-counter].symbol) {
 			return true
 		}
 	}
 	//DownLeft
+	counter = 1
 	for p.x-counter >= 0 && p.y-counter >= 0 && b.isEmpty(p.x-counter, p.y-counter) {
 		counter++
 	}
-	if p.x-counter >= 7 && p.y-counter >= 0 && b.board[p.x-counter][p.y-counter].isBlack != p.isBlack {
+	if p.x-counter >= 0 && p.y-counter >= 0 && b.board[p.x-counter][p.y-counter].isBlack != p.isBlack {
 		if Contains(diagonal, b.board[p.x-counter][p.y-counter].symbol) {
 			return true
 		}
 	}
 
-	//Checks Pawns	
-	if piece1, piece2 := b.board[p.x-1][p.y-1], b.board[p.x-1][p.y+1]; p.isBlack && (piece1.symbol == "P" && piece1.isBlack != p.isBlack) || (piece2.symbol == "P" && piece2.isBlack != p.isBlack) {
-		return true
-	} else if piece1, piece2 := b.board[p.x+1][p.y-1], b.board[p.x+1][p.y+1]; (piece1.symbol == "P" && piece1.isBlack != p.isBlack) || (piece2.symbol == "P" && piece2.isBlack != p.isBlack) {
-		return true
+	//Checks Pawns
+	if p.isBlack {
+		if p.x-1 >= 0 && p.y-1 >= 0 {
+			if piece := b.board[p.x-1][p.y-1]; piece.symbol == "P" && piece.isBlack != p.isBlack {
+				return true
+			}
+		}
+		if p.x-1 >= 0 && p.y+1 <= 7 {
+			if piece := b.board[p.x-1][p.y+1]; piece.symbol == "P" && piece.isBlack != p.isBlack {
+				return true
+			}
+		}
+	} else {
+		if p.x+1 <= 7 && p.y-1 >= 0 {
+			if piece := b.board[p.x+1][p.y-1]; piece.symbol == "P" && piece.isBlack != p.isBlack {
+				return true
+			}
+		}
+		if p.x+1 <= 7 && p.y+1 <= 7 {
+			if piece := b.board[p.x+1][p.y+1]; piece.symbol == "P" && piece.isBlack != p.isBlack {
+				return true
+			}
+		}
 	}
 
 	//Check horses
-	if p.x + 2 <= 7 && p.y - 1 >= 0 { //Upleft
-		if piece := b.board[p.x + 2][p.y - 1]; piece.symbol == "H" && piece.isBlack != p.isBlack {
-			return true
-		} 
-	}
-	if p.x + 2 <= 7 && p.y + 1 <= 7 { //UpRight
-		if piece := b.board[p.x + 2][p.y + 1]; piece.symbol == "H" && piece.isBlack != p.isBlack {
+	if p.x+2 <= 7 && p.y-1 >= 0 { //Upleft
+		if piece := b.board[p.x+2][p.y-1]; piece.symbol == "H" && piece.isBlack != p.isBlack {
 			return true
 		}
 	}
-	if p.x - 2 >= 0 && p.y - 1 >= 0 {//DownLeft
-		if piece := b.board[p.x - 2][p.y - 1]; piece.symbol == "H" && piece.isBlack != p.isBlack {
+	if p.x+2 <= 7 && p.y+1 <= 7 { //UpRight
+		if piece := b.board[p.x+2][p.y+1]; piece.symbol == "H" && piece.isBlack != p.isBlack {
 			return true
 		}
 	}
-	if p.x - 2 >= 0 && p.y + 1 <= 7 {//DownRight
-		if piece := b.board[p.x - 2][p.y + 1]; piece.symbol == "H" && piece.isBlack != p.isBlack {
+	if p.x-2 >= 0 && p.y-1 >= 0 { //DownLeft
+		if piece := b.board[p.x-2][p.y-1]; piece.symbol == "H" && piece.isBlack != p.isBlack {
 			return true
 		}
 	}
-	if p.x + 1 <= 7 && p.y + 2 <= 7 {//RightUp
-		if piece := b.board[p.x + 1][p.y + 2]; piece.symbol == "H" && piece.isBlack != p.isBlack {
+	if p.x-2 >= 0 && p.y+1 <= 7 { //DownRight
+		if piece := b.board[p.x-2][p.y+1]; piece.symbol == "H" && piece.isBlack != p.isBlack {
 			return true
 		}
 	}
-	if p.x - 1 >= 0 && p.y + 2 <= 7 {//RightDown
-		if piece := b.board[p.x - 1][p.y + 2]; piece.symbol == "H" && piece.isBlack != p.isBlack {
+	if p.x+1 <= 7 && p.y+2 <= 7 { //RightUp
+		if piece := b.board[p.x+1][p.y+2]; piece.symbol == "H" && piece.isBlack != p.isBlack {
 			return true
 		}
 	}
-	if p.x + 1 <= 7 && p.y - 2 >= 0 {//LeftUp
-		if piece := b.board[p.x + 1][p.y - 2]; piece.symbol == "H" && piece.isBlack != p.isBlack {
+	if p.x-1 >= 0 && p.y+2 <= 7 { //RightDown
+		if piece := b.board[p.x-1][p.y+2]; piece.symbol == "H" && piece.isBlack != p.isBlack {
 			return true
 		}
 	}
-	if p.x - 1 >= 0 && p.y - 2 >= 0 {//LeftDown
-		if piece := b.board[p.x - 1][p.y - 2]; piece.symbol == "H" && piece.isBlack != p.isBlack {
+	if p.x+1 <= 7 && p.y-2 >= 0 { //LeftUp
+		if piece := b.board[p.x+1][p.y-2]; piece.symbol == "H" && piece.isBlack != p.isBlack {
+			return true
+		}
+	}
+	if p.x-1 >= 0 && p.y-2 >= 0 { //LeftDown
+		if piece := b.board[p.x-1][p.y-2]; piece.symbol == "H" && piece.isBlack != p.isBlack {
 			return true
 		}
 	}
