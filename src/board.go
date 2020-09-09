@@ -210,7 +210,34 @@ func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
 
 
 	case "K":
-		
+		if p.y - 1 >= 0 && (b.isEmpty(p.x, p.y - 1) || b.board[p.x][p.y - 1].isBlack != p.isBlack) {
+			allowedMoves = append(allowedMoves, Position{p.x, p.y - 1})
+		}
+		if p.y + 1 <= 7 && (b.isEmpty(p.x, p.y + 1) || b.board[p.x][p.y + 1].isBlack != p.isBlack) {
+			allowedMoves = append(allowedMoves, Position{p.x, p.y + 1})
+		}
+		if p.x - 1 >= 0 && (b.isEmpty(p.x - 1, p.y) || b.board[p.x - 1][p.y].isBlack != p.isBlack) {
+			allowedMoves = append(allowedMoves, Position{p.x - 1, p.y})
+		}
+		if p.x + 1 <= 7 && (b.isEmpty(p.x + 1, p.y) || b.board[p.x + 1][p.y].isBlack != p.isBlack) {
+			allowedMoves = append(allowedMoves, Position{p.x + 1, p.y})
+		}
+
+		if p.x - 1 >= 0 && p.y - 1 >= 0 && (b.isEmpty(p.x - 1, p.y - 1) || b.board[p.x - 1][p.y - 1].isBlack != p.isBlack) {
+			allowedMoves = append(allowedMoves, Position{p.x - 1, p.y - 1})
+		}
+		if p.x + 1 <= 7 && p.y + 1 <= 7 && (b.isEmpty(p.x + 1, p.y + 1) || b.board[p.x + 1][p.y + 1].isBlack != p.isBlack) {
+			allowedMoves = append(allowedMoves, Position{p.x + 1, p.y + 1})
+		}
+		if p.x - 1 >= 0 && p.y + 1 <= 7 && (b.isEmpty(p.x - 1, p.y + 1) || b.board[p.x - 1][p.y + 1].isBlack != p.isBlack) {
+			allowedMoves = append(allowedMoves, Position{p.x - 1, p.y + 1})
+		}
+		if p.x + 1 <= 7 && p.y - 1 >= 0 && (b.isEmpty(p.x + 1, p.y - 1) || b.board[p.x + 1][p.y - 1].isBlack != p.isBlack) {
+			allowedMoves = append(allowedMoves, Position{p.x + 1, p.y - 1})
+		}
+
+		//Check if each of the moves dont result in a check
+		//add castling by checking if king and rooks on starting square and not checks on square in between
 
 	}
 	fmt.Println("moves", allowedMoves)
