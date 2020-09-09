@@ -15,10 +15,15 @@ func main() {
 	fmt.Println(board)
 	board.board[0][1].move(&board, 2, 2)
 	fmt.Println(board)
-	board.board[2][2].move(&board, 4, 3)
-	board.board[7][1].move(&board, 5, 2)
-	board.board[5][2].move(&board, 5, 4)
-	board.board[4][3].move(&board, 5, 4)
+	// board.board[2][2].move(&board, 4, 3)
+	// board.board[7][1].move(&board, 5, 2)
+	// board.board[5][2].move(&board, 5, 4)
+	// board.board[4][3].move(&board, 5, 4)
+	board.board[1][3].move(&board, 3, 3)
+	board.board[3][3].move(&board, 4, 3)
+	board.board[0][3].move(&board, 2, 3)
+	board.board[2][3].move(&board, 4, 5)
+	board.board[4][5].move(&board, 6, 4)
 
 
 

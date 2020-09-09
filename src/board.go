@@ -13,7 +13,7 @@ const bgLightW = "\033[38;5;240;48;2;240;217;181m"
 const bgDarkB = "\033[30;48;2;181;136;99m"
 const bgLightB = "\033[30;48;2;240;217;181m"
 const white = "\033[38;5;192m"
-const black	 = "\033[30m"
+const black = "\033[30m"
 const colourReset = "\033[0m"
 
 type Board struct {
@@ -21,142 +21,197 @@ type Board struct {
 }
 
 type Piece struct {
-	x, y int
-	symbol string
+	x, y    int
+	symbol  string
 	isBlack bool
 }
 
 type Position struct {
 	x, y int
 }
-func (b *Board) isEmpty(x,y int) bool {
+
+func (b *Board) isEmpty(x, y int) bool {
 	return b.board[x][y].symbol == " "
 }
 
-
-func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool{
+func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
 	currentPiece := b.board[newX][newY]
 	if currentPiece.symbol != " " && currentPiece.isBlack == p.isBlack {
 		//Square is non empty and has the same colour piece
 		return false
 	}
 
-	
 	// If moved piece results in check return False
 	//Check by checking for check with this piece not in current position
 	//do these in this order
 	//if in check, check if moving piece fixes check
-	
+
 	allowedMoves := make([]Position, 0)
 	fmt.Println("XY", p.x, p.y, newX, newY)
 	switch p.symbol {
-		case "P":
-			// If pawn in start position advance 2
-			if (p.x == 1 && !p.isBlack && b.isEmpty(p.x + 2, p.y)) {
-				allowedMoves = append(allowedMoves, Position{p.x + 2, p.y})
-			} else if (p.x == 6 && p.isBlack && b.isEmpty(p.x - 2, p.y)) {
-				allowedMoves = append(allowedMoves, Position{p.x - 2, p.y})
-			}
+	case "P":
+		// If pawn in start position advance 2
+		if p.x == 1 && !p.isBlack && b.isEmpty(p.x+2, p.y) {
+			allowedMoves = append(allowedMoves, Position{p.x + 2, p.y})
+		} else if p.x == 6 && p.isBlack && b.isEmpty(p.x-2, p.y) {
+			allowedMoves = append(allowedMoves, Position{p.x - 2, p.y})
+		}
 
-			//Advance 1
-			if !p.isBlack && b.isEmpty(p.x + 1, p.y) {
-				allowedMoves = append(allowedMoves, Position{p.x + 1, p.y})
-			} else if b.isEmpty(p.x - 1, p.y) {
-				allowedMoves = append(allowedMoves, Position{p.x - 1, p.y})
-			}
+		//Advance 1
+		if !p.isBlack && b.isEmpty(p.x+1, p.y) {
+			allowedMoves = append(allowedMoves, Position{p.x + 1, p.y})
+		} else if b.isEmpty(p.x-1, p.y) {
+			allowedMoves = append(allowedMoves, Position{p.x - 1, p.y})
+		}
 
-			//Diagonal attack
-			if !p.isBlack {
-				if p.y - 1 >= 0 && !b.isEmpty(p.x + 1, p.y - 1) && b.board[p.x + 1][p.y - 1].isBlack {
-					allowedMoves = append(allowedMoves, Position{p.x + 1, p.y - 1})
-				} else if p.y + 1 <= 7 && !b.isEmpty(p.x + 1, p.y + 1) && b.board[p.x + 1][p.y + 1].isBlack {
-					allowedMoves = append(allowedMoves, Position{p.x + 1, p.y + 1})
-				}
-			} else {
-				if p.y - 1 >= 0 && !b.isEmpty(p.x - 1, p.y - 1) && !b.board[p.x - 1][p.y - 1].isBlack {
-					allowedMoves = append(allowedMoves, Position{p.x - 1, p.y - 1})
-				} else if p.y + 1 <= 7 && !b.isEmpty(p.x - 1, p.y + 1) && !b.board[p.x - 1][p.y + 1].isBlack {
-					allowedMoves = append(allowedMoves, Position{p.x - 1, p.y + 1})
-				}
+		//Diagonal attack
+		if !p.isBlack {
+			if p.y-1 >= 0 && !b.isEmpty(p.x+1, p.y-1) && b.board[p.x+1][p.y-1].isBlack {
+				allowedMoves = append(allowedMoves, Position{p.x + 1, p.y - 1})
+			} else if p.y+1 <= 7 && !b.isEmpty(p.x+1, p.y+1) && b.board[p.x+1][p.y+1].isBlack {
+				allowedMoves = append(allowedMoves, Position{p.x + 1, p.y + 1})
 			}
-		case "R":
-			//Up
-			counter := 1
-			for p.x + counter <= 7 && b.isEmpty(p.x + counter, p.y) {
-				allowedMoves = append(allowedMoves, Position{p.x + counter, p.y})
-				counter++
+		} else {
+			if p.y-1 >= 0 && !b.isEmpty(p.x-1, p.y-1) && !b.board[p.x-1][p.y-1].isBlack {
+				allowedMoves = append(allowedMoves, Position{p.x - 1, p.y - 1})
+			} else if p.y+1 <= 7 && !b.isEmpty(p.x-1, p.y+1) && !b.board[p.x-1][p.y+1].isBlack {
+				allowedMoves = append(allowedMoves, Position{p.x - 1, p.y + 1})
 			}
-			if p.x + counter <= 7 && b.board[p.x + counter][p.y].isBlack != p.isBlack {
-				allowedMoves = append(allowedMoves, Position{p.x + counter, p.y})
+		}
+	case "H":
+		//Up
+		if p.x+2 <= 7 {
+			if p.y+1 <= 7 && (b.isEmpty(p.x+2, p.y+1) || b.board[p.x+2][p.y+1].isBlack != p.isBlack) {
+				allowedMoves = append(allowedMoves, Position{p.x + 2, p.y + 1})
 			}
-			//Down
-			counter = 1
-			for p.x - counter >= 0 && b.isEmpty(p.x - counter, p.y) {
-				allowedMoves = append(allowedMoves, Position{p.x - counter, p.y})
-				counter++
+			if p.y-1 >= 0 && (b.isEmpty(p.x+2, p.y-1) || b.board[p.x+2][p.y-1].isBlack != p.isBlack) {
+				allowedMoves = append(allowedMoves, Position{p.x + 2, p.y - 1})
 			}
-			if p.x - counter >= 0 && b.board[p.x - counter][p.y].isBlack != p.isBlack {
-				allowedMoves = append(allowedMoves, Position{p.x - counter, p.y})
+		}
+		if p.x-2 >= 0 { // Down
+			if p.y+1 <= 7 && (b.isEmpty(p.x-2, p.y+1) || b.board[p.x-2][p.y+1].isBlack != p.isBlack) {
+				allowedMoves = append(allowedMoves, Position{p.x - 2, p.y + 1})
 			}
-			//Right
-			counter = 1
-			for p.y + counter <= 7 && b.isEmpty(p.x, p.y + counter) {
-				allowedMoves = append(allowedMoves, Position{p.x, p.y + counter})
-				counter++
+			if p.y-1 >= 0 && (b.isEmpty(p.x-2, p.y-1) || b.board[p.x-2][p.y-1].isBlack != p.isBlack) {
+				allowedMoves = append(allowedMoves, Position{p.x - 2, p.y - 1})
 			}
-			if p.y + counter <= 7 && b.board[p.x][p.y  + counter].isBlack != p.isBlack {
-				allowedMoves = append(allowedMoves, Position{p.x, p.y + counter})
+		}
+		if p.y+2 <= 7 { //Right
+			if p.x+1 <= 7 && (b.isEmpty(p.x+1, p.y+2) || b.board[p.x+1][p.y+2].isBlack != p.isBlack) {
+				allowedMoves = append(allowedMoves, Position{p.x + 1, p.y + 2})
 			}
-			//Left
-			counter = 1
-			for p.y - counter >= 0 && b.isEmpty(p.x, p.y - counter) {
-				allowedMoves = append(allowedMoves, Position{p.x, p.y - counter})
-				counter++
+			if p.x-1 >= 0 && (b.isEmpty(p.x-1, p.y+2) || b.board[p.x-1][p.y+2].isBlack != p.isBlack) {
+				allowedMoves = append(allowedMoves, Position{p.x - 1, p.y + 2})
 			}
-			if p.y - counter >= 0 && b.board[p.x][p.y - counter].isBlack != p.isBlack {
-				allowedMoves = append(allowedMoves, Position{p.x, p.y - counter})
+		}
+		if p.y-2 >= 0 { // Left
+			if p.x+1 <= 7 && (b.isEmpty(p.x+1, p.y-2) || b.board[p.x+1][p.y-2].isBlack != p.isBlack) {
+				allowedMoves = append(allowedMoves, Position{p.x + 1, p.y - 2})
 			}
-		case "H":
-			//Up
-			if (p.x + 2 <= 7) {
-				if (p.y + 1 <= 7 && (b.isEmpty(p.x + 2, p.y + 1) || b.board[p.x + 2][p.y + 1].isBlack != p.isBlack)) {
-					allowedMoves = append(allowedMoves, Position{p.x + 2, p.y + 1})
-				} 
-				if (p.y - 1 >= 0 && (b.isEmpty(p.x + 2, p.y - 1) || b.board[p.x + 2][p.y - 1].isBlack != p.isBlack)) {
-					allowedMoves = append(allowedMoves, Position{p.x + 2, p.y - 1})
-				} 
-			} 
-			if (p.x - 2 >= 0) { // Down
-				if (p.y + 1 <= 7 && (b.isEmpty(p.x - 2, p.y + 1) || b.board[p.x - 2][p.y + 1].isBlack != p.isBlack)) {
-					allowedMoves = append(allowedMoves, Position{p.x - 2, p.y + 1})
-				} 
-				if (p.y - 1 >= 0 && (b.isEmpty(p.x - 2, p.y - 1) || b.board[p.x - 2][p.y - 1].isBlack != p.isBlack)) {
-					allowedMoves = append(allowedMoves, Position{p.x - 2, p.y - 1})
-				} 
-			} 
-			if (p.y + 2 <= 7) { //Right
-				if (p.x + 1 <= 7 && (b.isEmpty(p.x + 1, p.y + 2) || b.board[p.x + 1][p.y + 2].isBlack != p.isBlack)) {
-					allowedMoves = append(allowedMoves, Position{p.x + 1, p.y + 2})
-				} 
-				if (p.x - 1 >= 0 && (b.isEmpty(p.x - 1, p.y + 2) || b.board[p.x - 1][p.y + 2].isBlack != p.isBlack)) {
-					allowedMoves = append(allowedMoves, Position{p.x - 1, p.y + 2})
-				} 
-			} 
-			if (p.y - 2 >= 0) { // Left
-				if (p.x + 1 <= 7 && (b.isEmpty(p.x + 1, p.y - 2) || b.board[p.x + 1][p.y - 2].isBlack != p.isBlack)) {
-					allowedMoves = append(allowedMoves, Position{p.x + 1, p.y - 2})
-				} 
-				if (p.x - 1 >= 0 && (b.isEmpty(p.x - 1, p.y - 2) || b.board[p.x - 1][p.y - 2].isBlack != p.isBlack)) {
-					allowedMoves = append(allowedMoves, Position{p.x - 1, p.y - 2})
-				} 
+			if p.x-1 >= 0 && (b.isEmpty(p.x-1, p.y-2) || b.board[p.x-1][p.y-2].isBlack != p.isBlack) {
+				allowedMoves = append(allowedMoves, Position{p.x - 1, p.y - 2})
 			}
-			 
-
-
-		// case "B":
-		// case "Q":
-		// case "K":
+		}
+	
+	case "Q":
+		fallthrough
+	
+	case "R":
+		//Up
+		counter := 1
+		for p.x+counter <= 7 && b.isEmpty(p.x+counter, p.y) {
+			allowedMoves = append(allowedMoves, Position{p.x + counter, p.y})
+			counter++
+		}	
+		if p.x+counter <= 7 && b.board[p.x+counter][p.y].isBlack != p.isBlack {
+			allowedMoves = append(allowedMoves, Position{p.x + counter, p.y})
+		}	
+		//Down
+		counter = 1
+		for p.x-counter >= 0 && b.isEmpty(p.x-counter, p.y) {
+			allowedMoves = append(allowedMoves, Position{p.x - counter, p.y})
+			counter++
+		}	
+		if p.x-counter >= 0 && b.board[p.x-counter][p.y].isBlack != p.isBlack {
+			allowedMoves = append(allowedMoves, Position{p.x - counter, p.y})
+		}	
+		//Right
+		counter = 1
+		for p.y+counter <= 7 && b.isEmpty(p.x, p.y+counter) {
+			allowedMoves = append(allowedMoves, Position{p.x, p.y + counter})
+			counter++
+		}	
+		if p.y+counter <= 7 && b.board[p.x][p.y+counter].isBlack != p.isBlack {
+			allowedMoves = append(allowedMoves, Position{p.x, p.y + counter})
+		}	
+		//Left
+		counter = 1
+		for p.y-counter >= 0 && b.isEmpty(p.x, p.y-counter) {
+			allowedMoves = append(allowedMoves, Position{p.x, p.y - counter})
+			counter++
+		}	
+		if p.y-counter >= 0 && b.board[p.x][p.y-counter].isBlack != p.isBlack {
+			allowedMoves = append(allowedMoves, Position{p.x, p.y - counter})
+		}	
 		
+		if p.symbol == "R" {
+			break
+		}
+		fallthrough
+			
+	case "B":
+		counter := 1
+		// Top Right
+		tempX, tempY := p.x+counter, p.y+counter;
+		for tempX <= 7 && tempY <= 7 && b.isEmpty(tempX, tempY) {
+			allowedMoves = append(allowedMoves, Position{tempX, tempY})
+			counter++
+			tempX, tempY = p.x+counter, p.y+counter;
+		}
+		if tempX <= 7 && tempY <= 7 && b.board[tempX][tempY].isBlack != p.isBlack {
+			allowedMoves = append(allowedMoves, Position{tempX, tempY})
+		}
+
+		counter = 1
+		// Top Left
+		tempX, tempY = p.x+counter, p.y-counter;
+		for tempX <= 7 && tempY >= 0 && b.isEmpty(tempX, tempY) {
+			allowedMoves = append(allowedMoves, Position{tempX, tempY})
+			counter++
+			tempX, tempY = p.x+counter, p.y-counter;
+		}
+		if tempX <= 7 && tempY >= 0 && b.board[tempX][tempY].isBlack != p.isBlack {
+			allowedMoves = append(allowedMoves, Position{tempX, tempY})
+		}
+
+		counter = 1
+		// Bottom Right
+		tempX, tempY = p.x-counter, p.y+counter;
+		for tempX >= 0 && tempY <= 7 && b.isEmpty(tempX, tempY) {
+			allowedMoves = append(allowedMoves, Position{tempX, tempY})
+			counter++
+			tempX, tempY = p.x-counter, p.y+counter;
+		}
+		if tempX >= 0 && tempY <= 7 && b.board[tempX][tempY].isBlack != p.isBlack {
+			allowedMoves = append(allowedMoves, Position{tempX, tempY})
+		}
+
+		counter = 1
+		// Bottom Left
+		tempX, tempY = p.x-counter, p.y-counter;
+		for tempX >= 0 && tempY >= 0 && b.isEmpty(tempX, tempY) {
+			allowedMoves = append(allowedMoves, Position{tempX, tempY})
+			counter++
+			tempX, tempY = p.x-counter, p.y-counter;
+		}
+		if tempX >= 0 && tempY >= 0 && b.board[tempX][tempY].isBlack != p.isBlack {
+			allowedMoves = append(allowedMoves, Position{tempX, tempY})
+		}
+
+
+	case "K":
+		
+
 	}
 	fmt.Println("moves", allowedMoves)
 	for _, val := range allowedMoves {
@@ -168,7 +223,6 @@ func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool{
 	return false
 }
 
-
 func (p Piece) move(b *Board, newX, newY int) {
 	// Check if allowed move
 	if p.checkAllowedMoves(b, newX, newY) {
@@ -178,7 +232,7 @@ func (p Piece) move(b *Board, newX, newY int) {
 		b.board[newX][newY] = p
 		fmt.Println("Moved piece to ", newX, newY, p.x, p.y)
 	}
-	
+
 }
 
 //String representation of board
@@ -186,7 +240,8 @@ func (b Board) String() string {
 	var board string
 	var swapColour bool
 	board += "\n----------------------------\n"
-	board += "|  a  b  c  d  e  f  g  h  |\n"
+	// board += "|  a  b  c  d  e  f  g  h  |\n"
+	board += "|  0  1  2  3  4  5  6  7  |\n"
 	board += "----------------------------\n"
 	for row := 7; row >= 0; row-- {
 		board += colourReset + strconv.Itoa(row) + "|"
@@ -198,7 +253,7 @@ func (b Board) String() string {
 				} else {
 					board += bgLightB + " " + piece.symbol + " "
 				}
-			} else {			
+			} else {
 				if swapColour {
 					board += bgDarkW + " " + piece.symbol + " "
 				} else {
@@ -211,7 +266,8 @@ func (b Board) String() string {
 		board += colourReset + "|" + strconv.Itoa(row) + "\n"
 	}
 	board += "----------------------------\n"
-	board += "|  a  b  c  d  e  f  g  h  |\n"
+	// board += "|  a  b  c  d  e  f  g  h  |\n"
+	board += "|  0  1  2  3  4  5  6  7  |\n"
 	board += "----------------------------\n"
 	return fmt.Sprintf("%v", board)
 }
