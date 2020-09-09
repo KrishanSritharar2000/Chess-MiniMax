@@ -18,6 +18,8 @@ const colourReset = "\033[0m"
 
 type Board struct {
 	board [][]Piece
+	kingW Piece
+	kingB Piece
 }
 
 type Piece struct {
@@ -34,6 +36,151 @@ func (b *Board) isEmpty(x, y int) bool {
 	return b.board[x][y].symbol == " "
 }
 
+func Contains(a []string, x string) bool {
+	for _, n := range a {
+		if x == n {
+			return true
+		}
+	}
+	return false
+}
+
+func (p Piece) isCheck(b *Board) bool {
+
+	//Hoizontal and Vertical
+	var horizontal = []string{"R", "Q"}
+	counter := 1
+	//Up
+	for p.x+counter <= 7 && b.isEmpty(p.x+counter, p.y) {
+		counter++
+	}
+	if p.x+counter <= 7 && b.board[p.x+counter][p.y].isBlack != p.isBlack {
+		if Contains(horizontal, b.board[p.x+counter][p.y].symbol) {
+			return true
+		}
+	}
+	//Down
+	for p.x-counter >= 0 && b.isEmpty(p.x-counter, p.y) {
+		counter++
+	}
+	if p.x-counter >= 0 && b.board[p.x-counter][p.y].isBlack != p.isBlack {
+		if Contains(horizontal, b.board[p.x-counter][p.y].symbol) {
+			return true
+		}
+	}
+	//Right
+	for p.y+counter <= 7 && b.isEmpty(p.x, p.y+counter) {
+		counter++
+	}
+	if p.y+counter <= 7 && b.board[p.x][p.y+counter].isBlack != p.isBlack {
+		if Contains(horizontal, b.board[p.x][p.y+counter].symbol) {
+			return true
+		}
+	}
+	//Left
+	for p.y-counter >= 0 && b.isEmpty(p.x, p.y-counter) {
+		counter++
+	}
+	if p.y-counter >= 0 && b.board[p.x][p.y-counter].isBlack != p.isBlack {
+		if Contains(horizontal, b.board[p.x][p.y-counter].symbol) {
+			return true
+		}
+	}
+
+	//Diagonals
+	var diagonal = []string{"B", "Q"}
+	counter = 1
+	//UpRight
+	for p.x+counter <= 7 && p.y+counter <= 7 && b.isEmpty(p.x+counter, p.y+counter) {
+		counter++
+	}
+	if p.x+counter <= 7 && p.y+counter <= 7 && b.board[p.x+counter][p.y+counter].isBlack != p.isBlack {
+		if Contains(diagonal, b.board[p.x+counter][p.y+counter].symbol) {
+			return true
+		}
+	}
+	//DownRight
+	for p.x-counter >= 0 && p.y+counter <= 7 && b.isEmpty(p.x-counter, p.y) {
+		counter++
+	}
+	if p.x-counter >= 0 && p.y+counter <= 7 && b.board[p.x-counter][p.y+counter].isBlack != p.isBlack {
+		if Contains(diagonal, b.board[p.x-counter][p.y+counter].symbol) {
+			return true
+		}
+	}
+	//UpLeft
+	for p.x+counter <= 7 && p.y-counter >= 0 && b.isEmpty(p.x+counter, p.y-counter) {
+		counter++
+	}
+	if p.x+counter <= 7 && p.y-counter >= 7 && b.board[p.x+counter][p.y-counter].isBlack != p.isBlack {
+		if Contains(diagonal, b.board[p.x+counter][p.y-counter].symbol) {
+			return true
+		}
+	}
+	//DownLeft
+	for p.x-counter >= 0 && p.y-counter >= 0 && b.isEmpty(p.x-counter, p.y-counter) {
+		counter++
+	}
+	if p.x-counter >= 7 && p.y-counter >= 0 && b.board[p.x-counter][p.y-counter].isBlack != p.isBlack {
+		if Contains(diagonal, b.board[p.x-counter][p.y-counter].symbol) {
+			return true
+		}
+	}
+
+	//Checks Pawns	
+	if piece1, piece2 := b.board[p.x-1][p.y-1], b.board[p.x-1][p.y+1]; p.isBlack && (piece1.symbol == "P" && piece1.isBlack != p.isBlack) || (piece2.symbol == "P" && piece2.isBlack != p.isBlack) {
+		return true
+	} else if piece1, piece2 := b.board[p.x+1][p.y-1], b.board[p.x+1][p.y+1]; (piece1.symbol == "P" && piece1.isBlack != p.isBlack) || (piece2.symbol == "P" && piece2.isBlack != p.isBlack) {
+		return true
+	}
+
+	//Check horses
+	if p.x + 2 <= 7 && p.y - 1 >= 0 { //Upleft
+		if piece := b.board[p.x + 2][p.y - 1]; piece.symbol == "H" && piece.isBlack != p.isBlack {
+			return true
+		} 
+	}
+	if p.x + 2 <= 7 && p.y + 1 <= 7 { //UpRight
+		if piece := b.board[p.x + 2][p.y + 1]; piece.symbol == "H" && piece.isBlack != p.isBlack {
+			return true
+		}
+	}
+	if p.x - 2 >= 0 && p.y - 1 >= 0 {//DownLeft
+		if piece := b.board[p.x - 2][p.y - 1]; piece.symbol == "H" && piece.isBlack != p.isBlack {
+			return true
+		}
+	}
+	if p.x - 2 >= 0 && p.y + 1 <= 7 {//DownRight
+		if piece := b.board[p.x - 2][p.y + 1]; piece.symbol == "H" && piece.isBlack != p.isBlack {
+			return true
+		}
+	}
+	if p.x + 1 <= 7 && p.y + 2 <= 7 {//RightUp
+		if piece := b.board[p.x + 1][p.y + 2]; piece.symbol == "H" && piece.isBlack != p.isBlack {
+			return true
+		}
+	}
+	if p.x - 1 >= 0 && p.y + 2 <= 7 {//RightDown
+		if piece := b.board[p.x - 1][p.y + 2]; piece.symbol == "H" && piece.isBlack != p.isBlack {
+			return true
+		}
+	}
+	if p.x + 1 <= 7 && p.y - 2 >= 0 {//LeftUp
+		if piece := b.board[p.x + 1][p.y - 2]; piece.symbol == "H" && piece.isBlack != p.isBlack {
+			return true
+		}
+	}
+	if p.x - 1 >= 0 && p.y - 2 >= 0 {//LeftDown
+		if piece := b.board[p.x - 1][p.y - 2]; piece.symbol == "H" && piece.isBlack != p.isBlack {
+			return true
+		}
+	}
+
+	//No Check
+	return false
+
+}
+
 func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
 	currentPiece := b.board[newX][newY]
 	if currentPiece.symbol != " " && currentPiece.isBlack == p.isBlack {
@@ -48,6 +195,7 @@ func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
 
 	allowedMoves := make([]Position, 0)
 	fmt.Println("XY", p.x, p.y, newX, newY)
+	fmt.Println("WhiteKing", b.kingW, "BlackKing", b.kingB)
 	switch p.symbol {
 	case "P":
 		// If pawn in start position advance 2
@@ -112,61 +260,61 @@ func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
 				allowedMoves = append(allowedMoves, Position{p.x - 1, p.y - 2})
 			}
 		}
-	
+
 	case "Q":
 		fallthrough
-	
+
 	case "R":
 		//Up
 		counter := 1
 		for p.x+counter <= 7 && b.isEmpty(p.x+counter, p.y) {
 			allowedMoves = append(allowedMoves, Position{p.x + counter, p.y})
 			counter++
-		}	
+		}
 		if p.x+counter <= 7 && b.board[p.x+counter][p.y].isBlack != p.isBlack {
 			allowedMoves = append(allowedMoves, Position{p.x + counter, p.y})
-		}	
+		}
 		//Down
 		counter = 1
 		for p.x-counter >= 0 && b.isEmpty(p.x-counter, p.y) {
 			allowedMoves = append(allowedMoves, Position{p.x - counter, p.y})
 			counter++
-		}	
+		}
 		if p.x-counter >= 0 && b.board[p.x-counter][p.y].isBlack != p.isBlack {
 			allowedMoves = append(allowedMoves, Position{p.x - counter, p.y})
-		}	
+		}
 		//Right
 		counter = 1
 		for p.y+counter <= 7 && b.isEmpty(p.x, p.y+counter) {
 			allowedMoves = append(allowedMoves, Position{p.x, p.y + counter})
 			counter++
-		}	
+		}
 		if p.y+counter <= 7 && b.board[p.x][p.y+counter].isBlack != p.isBlack {
 			allowedMoves = append(allowedMoves, Position{p.x, p.y + counter})
-		}	
+		}
 		//Left
 		counter = 1
 		for p.y-counter >= 0 && b.isEmpty(p.x, p.y-counter) {
 			allowedMoves = append(allowedMoves, Position{p.x, p.y - counter})
 			counter++
-		}	
+		}
 		if p.y-counter >= 0 && b.board[p.x][p.y-counter].isBlack != p.isBlack {
 			allowedMoves = append(allowedMoves, Position{p.x, p.y - counter})
-		}	
-		
+		}
+
 		if p.symbol == "R" {
 			break
 		}
 		fallthrough
-			
+
 	case "B":
 		counter := 1
 		// Top Right
-		tempX, tempY := p.x+counter, p.y+counter;
+		tempX, tempY := p.x+counter, p.y+counter
 		for tempX <= 7 && tempY <= 7 && b.isEmpty(tempX, tempY) {
 			allowedMoves = append(allowedMoves, Position{tempX, tempY})
 			counter++
-			tempX, tempY = p.x+counter, p.y+counter;
+			tempX, tempY = p.x+counter, p.y+counter
 		}
 		if tempX <= 7 && tempY <= 7 && b.board[tempX][tempY].isBlack != p.isBlack {
 			allowedMoves = append(allowedMoves, Position{tempX, tempY})
@@ -174,11 +322,11 @@ func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
 
 		counter = 1
 		// Top Left
-		tempX, tempY = p.x+counter, p.y-counter;
+		tempX, tempY = p.x+counter, p.y-counter
 		for tempX <= 7 && tempY >= 0 && b.isEmpty(tempX, tempY) {
 			allowedMoves = append(allowedMoves, Position{tempX, tempY})
 			counter++
-			tempX, tempY = p.x+counter, p.y-counter;
+			tempX, tempY = p.x+counter, p.y-counter
 		}
 		if tempX <= 7 && tempY >= 0 && b.board[tempX][tempY].isBlack != p.isBlack {
 			allowedMoves = append(allowedMoves, Position{tempX, tempY})
@@ -186,11 +334,11 @@ func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
 
 		counter = 1
 		// Bottom Right
-		tempX, tempY = p.x-counter, p.y+counter;
+		tempX, tempY = p.x-counter, p.y+counter
 		for tempX >= 0 && tempY <= 7 && b.isEmpty(tempX, tempY) {
 			allowedMoves = append(allowedMoves, Position{tempX, tempY})
 			counter++
-			tempX, tempY = p.x-counter, p.y+counter;
+			tempX, tempY = p.x-counter, p.y+counter
 		}
 		if tempX >= 0 && tempY <= 7 && b.board[tempX][tempY].isBlack != p.isBlack {
 			allowedMoves = append(allowedMoves, Position{tempX, tempY})
@@ -198,41 +346,40 @@ func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
 
 		counter = 1
 		// Bottom Left
-		tempX, tempY = p.x-counter, p.y-counter;
+		tempX, tempY = p.x-counter, p.y-counter
 		for tempX >= 0 && tempY >= 0 && b.isEmpty(tempX, tempY) {
 			allowedMoves = append(allowedMoves, Position{tempX, tempY})
 			counter++
-			tempX, tempY = p.x-counter, p.y-counter;
+			tempX, tempY = p.x-counter, p.y-counter
 		}
 		if tempX >= 0 && tempY >= 0 && b.board[tempX][tempY].isBlack != p.isBlack {
 			allowedMoves = append(allowedMoves, Position{tempX, tempY})
 		}
 
-
 	case "K":
-		if p.y - 1 >= 0 && (b.isEmpty(p.x, p.y - 1) || b.board[p.x][p.y - 1].isBlack != p.isBlack) {
+		if p.y-1 >= 0 && (b.isEmpty(p.x, p.y-1) || b.board[p.x][p.y-1].isBlack != p.isBlack) {
 			allowedMoves = append(allowedMoves, Position{p.x, p.y - 1})
 		}
-		if p.y + 1 <= 7 && (b.isEmpty(p.x, p.y + 1) || b.board[p.x][p.y + 1].isBlack != p.isBlack) {
+		if p.y+1 <= 7 && (b.isEmpty(p.x, p.y+1) || b.board[p.x][p.y+1].isBlack != p.isBlack) {
 			allowedMoves = append(allowedMoves, Position{p.x, p.y + 1})
 		}
-		if p.x - 1 >= 0 && (b.isEmpty(p.x - 1, p.y) || b.board[p.x - 1][p.y].isBlack != p.isBlack) {
+		if p.x-1 >= 0 && (b.isEmpty(p.x-1, p.y) || b.board[p.x-1][p.y].isBlack != p.isBlack) {
 			allowedMoves = append(allowedMoves, Position{p.x - 1, p.y})
 		}
-		if p.x + 1 <= 7 && (b.isEmpty(p.x + 1, p.y) || b.board[p.x + 1][p.y].isBlack != p.isBlack) {
+		if p.x+1 <= 7 && (b.isEmpty(p.x+1, p.y) || b.board[p.x+1][p.y].isBlack != p.isBlack) {
 			allowedMoves = append(allowedMoves, Position{p.x + 1, p.y})
 		}
 
-		if p.x - 1 >= 0 && p.y - 1 >= 0 && (b.isEmpty(p.x - 1, p.y - 1) || b.board[p.x - 1][p.y - 1].isBlack != p.isBlack) {
+		if p.x-1 >= 0 && p.y-1 >= 0 && (b.isEmpty(p.x-1, p.y-1) || b.board[p.x-1][p.y-1].isBlack != p.isBlack) {
 			allowedMoves = append(allowedMoves, Position{p.x - 1, p.y - 1})
 		}
-		if p.x + 1 <= 7 && p.y + 1 <= 7 && (b.isEmpty(p.x + 1, p.y + 1) || b.board[p.x + 1][p.y + 1].isBlack != p.isBlack) {
+		if p.x+1 <= 7 && p.y+1 <= 7 && (b.isEmpty(p.x+1, p.y+1) || b.board[p.x+1][p.y+1].isBlack != p.isBlack) {
 			allowedMoves = append(allowedMoves, Position{p.x + 1, p.y + 1})
 		}
-		if p.x - 1 >= 0 && p.y + 1 <= 7 && (b.isEmpty(p.x - 1, p.y + 1) || b.board[p.x - 1][p.y + 1].isBlack != p.isBlack) {
+		if p.x-1 >= 0 && p.y+1 <= 7 && (b.isEmpty(p.x-1, p.y+1) || b.board[p.x-1][p.y+1].isBlack != p.isBlack) {
 			allowedMoves = append(allowedMoves, Position{p.x - 1, p.y + 1})
 		}
-		if p.x + 1 <= 7 && p.y - 1 >= 0 && (b.isEmpty(p.x + 1, p.y - 1) || b.board[p.x + 1][p.y - 1].isBlack != p.isBlack) {
+		if p.x+1 <= 7 && p.y-1 >= 0 && (b.isEmpty(p.x+1, p.y-1) || b.board[p.x+1][p.y-1].isBlack != p.isBlack) {
 			allowedMoves = append(allowedMoves, Position{p.x + 1, p.y - 1})
 		}
 
@@ -241,6 +388,8 @@ func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
 
 	}
 	fmt.Println("moves", allowedMoves)
+	fmt.Println("Is black king currently in check: ", b.kingB.isCheck(b))
+	fmt.Println("Is white king currently in check: ", b.kingW.isCheck(b))
 	for _, val := range allowedMoves {
 		if val.x == newX && val.y == newY {
 			return true
@@ -257,6 +406,13 @@ func (p Piece) move(b *Board, newX, newY int) {
 		p.x = newX
 		p.y = newY
 		b.board[newX][newY] = p
+		if p.symbol == "K" {
+			if p.isBlack {
+				b.kingB = p
+			} else {
+				b.kingW = p
+			}
+		}
 		fmt.Println("Moved piece to ", newX, newY, p.x, p.y)
 	}
 
@@ -347,4 +503,8 @@ func SetupBoard(board *Board) {
 	board.board[6][5] = Piece{6, 5, "P", true}
 	board.board[6][6] = Piece{6, 6, "P", true}
 	board.board[6][7] = Piece{6, 7, "P", true}
+
+	board.kingW = board.board[0][4]
+	board.kingB = board.board[7][4]
+
 }
