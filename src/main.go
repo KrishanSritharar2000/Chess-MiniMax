@@ -50,7 +50,26 @@ func main() {
 	board.board[4][5].move(&board, 3,3)
 	board.board[3][3].move(&board, 1,2)
 	board.board[1][2].move(&board, 0,4)
+
 	board.board[0][4].move(&board, 1,6)
+	board.board[1][6].move(&board, 3,7)
+
+	board.board[1][1].move(&board, 3,1)
+	board.board[3][1].move(&board, 4,1)
+	fmt.Println("---------------------")
+	board.board[6][2].move(&board, 4,2)
+	fmt.Println("---------------------")
+	board.board[4][1].move(&board, 7,2)
+	fmt.Println("---------------------")
+	board.board[1][5].move(&board, 3,5)
+	board.board[6][7].move(&board, 4,7)
+	fmt.Println("---------------------")
+	board.board[4][1].move(&board, 7,2)
+
+
+
+
+
 
 
 

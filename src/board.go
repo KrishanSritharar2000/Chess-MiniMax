@@ -17,9 +17,10 @@ const black = "\033[30m"
 const colourReset = "\033[0m"
 
 type Board struct {
-	board [][]Piece
-	kingW Piece
-	kingB Piece
+	board                        [][]Piece
+	kingW, kingB                 Piece
+	whiteCheck, blackCheck       bool
+	lastPawnMoveW, lastPawnMoveB Position //used for en passant
 }
 
 type Piece struct {
@@ -205,16 +206,45 @@ func (p Piece) isCheck(b *Board) bool {
 
 }
 
+//Pre: newX and newY are in board boundaries
+//Post: Declaration of allowed move
 func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
 	currentPiece := b.board[newX][newY]
 	if currentPiece.symbol != " " && currentPiece.isBlack == p.isBlack {
 		//Square is non empty and has the same colour piece
+		fmt.Println("Your piece is there, you cannot move there!")
 		return false
 	}
 
+	//Checks if moved piece produces check and
+	//Checks if moved piece resolves current check
+	currentPiece = b.board[p.x][p.y]
+	//Remove the piece
+	b.board[p.x][p.y] = Piece{p.x, p.y, " ", false}
+	replaceingPiece := b.board[newX][newY]
+	b.board[newX][newY] = currentPiece
+
+	if p.isBlack {
+		if b.kingB.isCheck(b) {
+			b.board[p.x][p.y] = currentPiece
+			b.board[newX][newY] = replaceingPiece
+			fmt.Println("Invalid Move")
+			fmt.Println("You are currently in check!")
+			return false
+		}
+	} else if b.kingW.isCheck(b) {
+		b.board[p.x][p.y] = currentPiece
+		b.board[newX][newY] = replaceingPiece
+		fmt.Println("Invalid Move")
+		fmt.Println("You are currently in check!")
+		return false
+	}
+	b.board[p.x][p.y] = currentPiece
+	b.board[newX][newY] = replaceingPiece
 	// If moved piece results in check return False
 	//Check by checking for check with this piece not in current position
 	//do these in this order
+
 	//if in check, check if moving piece fixes check
 
 	allowedMoves := make([]Position, 0)
@@ -248,6 +278,18 @@ func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
 				allowedMoves = append(allowedMoves, Position{p.x - 1, p.y - 1})
 			} else if p.y+1 <= 7 && !b.isEmpty(p.x-1, p.y+1) && !b.board[p.x-1][p.y+1].isBlack {
 				allowedMoves = append(allowedMoves, Position{p.x - 1, p.y + 1})
+			}
+		}
+
+		//En passant
+		if p.isBlack {
+			if p.x == 3 && (b.lastPawnMoveW.y == p.y-1 || b.lastPawnMoveW.y == p.y+1) {
+				allowedMoves = append(allowedMoves, Position{b.lastPawnMoveW.x - 1, b.lastPawnMoveW.y})
+			}
+		} else {
+			fmt.Println("Last moved black pawn", b.lastPawnMoveB)
+			if p.x == 4 && (b.lastPawnMoveB.y == p.y-1 || b.lastPawnMoveB.y == p.y+1) {
+				allowedMoves = append(allowedMoves, Position{b.lastPawnMoveB.x + 1, b.lastPawnMoveB.y})
 			}
 		}
 	case "H":
@@ -284,10 +326,8 @@ func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
 				allowedMoves = append(allowedMoves, Position{p.x - 1, p.y - 2})
 			}
 		}
-
 	case "Q":
 		fallthrough
-
 	case "R":
 		//Up
 		counter := 1
@@ -412,6 +452,9 @@ func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
 
 	}
 	fmt.Println("moves", allowedMoves)
+	if len(allowedMoves) > 0 {
+		fmt.Println("moves First item", allowedMoves[0].x)
+	}
 	fmt.Println("Is black king currently in check: ", b.kingB.isCheck(b))
 	fmt.Println("Is white king currently in check: ", b.kingW.isCheck(b))
 	for _, val := range allowedMoves {
@@ -426,10 +469,25 @@ func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
 func (p Piece) move(b *Board, newX, newY int) {
 	// Check if allowed move
 	if p.checkAllowedMoves(b, newX, newY) {
+		//Sets pawn positions for en passant
+		if p.symbol == "P" {
+			if p.isBlack && p.x == 6 && newX == 4 {
+				b.lastPawnMoveB = Position{newX, newY}
+			} else if !p.isBlack && p.x == 1 && newX == 3 {
+				b.lastPawnMoveW = Position{newX, newY}
+			}
+		} else if p.isBlack {
+			b.lastPawnMoveB = Position{-2, -2}
+		} else {
+			b.lastPawnMoveW = Position{-2, -2}
+		}
+
 		b.board[p.x][p.y] = Piece{p.x, p.y, " ", false}
 		p.x = newX
 		p.y = newY
 		b.board[newX][newY] = p
+
+		//Sets king position
 		if p.symbol == "K" {
 			if p.isBlack {
 				b.kingB = p
@@ -437,6 +495,7 @@ func (p Piece) move(b *Board, newX, newY int) {
 				b.kingW = p
 			}
 		}
+
 		fmt.Println("Moved piece to ", newX, newY, p.x, p.y)
 	}
 
@@ -530,5 +589,10 @@ func SetupBoard(board *Board) {
 
 	board.kingW = board.board[0][4]
 	board.kingB = board.board[7][4]
+	board.whiteCheck = false
+	board.blackCheck = false
+	print("Inital Value", board.whiteCheck)
+	print("Inital Value", board.lastPawnMoveB.x, board.lastPawnMoveB.y)
+	print("Inital Value", board.lastPawnMoveW.x, board.lastPawnMoveW.y)
 
 }
