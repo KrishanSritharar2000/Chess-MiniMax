@@ -21,6 +21,7 @@ type Board struct {
 	kingW, kingB                 Piece
 	whiteCheck, blackCheck       bool
 	lastPawnMoveW, lastPawnMoveB Position //used for en passant
+	castleCheck                  [6]bool  //WhiteKing, BlackKing, WhiteRookLeft, WhiteRookRight, BlackRookLeft, BlackRookRight
 }
 
 type Piece struct {
@@ -206,6 +207,37 @@ func (p Piece) isCheck(b *Board) bool {
 
 }
 
+//Returns true if not check in that place
+func (p Piece) checkCastleGap(b *Board, x, y int) bool {
+	origX, origY := p.x, p.y
+	p.x, p.y = x, y
+	if p.isBlack {
+		b.kingB = Piece{x, y, "K", true}
+	} else {
+		b.kingW = Piece{x, y, "K", false}
+	}
+	result := p.isCheck(b)
+	p.x, p.y = origX, origY
+	if p.isBlack {
+		b.kingB = p
+	} else {
+		b.kingW = p
+	}
+	return !result
+}
+
+func resetBoard(b *Board, p, currentPiece, replacingPiece Piece, newX, newY int) {
+	if p.symbol == "K" {
+		if p.isBlack {
+			b.kingB = p
+		} else {
+			b.kingW = p
+		}
+	}
+	b.board[p.x][p.y] = currentPiece
+	b.board[newX][newY] = replacingPiece
+}
+
 //Pre: newX and newY are in board boundaries
 //Post: Declaration of allowed move
 func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
@@ -223,24 +255,36 @@ func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
 	b.board[p.x][p.y] = Piece{p.x, p.y, " ", false}
 	replaceingPiece := b.board[newX][newY]
 	b.board[newX][newY] = currentPiece
+	if p.symbol == "K" {
+		if p.isBlack {
+			b.kingB = Piece{newX, newY, "K", true}
+		} else {
+			b.kingW = Piece{newX, newY, "K", false}
+		}
+	}
 
 	if p.isBlack {
 		if b.kingB.isCheck(b) {
-			b.board[p.x][p.y] = currentPiece
-			b.board[newX][newY] = replaceingPiece
+			resetBoard(b, p, currentPiece, replaceingPiece, newX, newY)
 			fmt.Println("Invalid Move")
-			fmt.Println("You are currently in check!")
+			if p.symbol == "K" {
+				fmt.Println("You will be in check!")
+			} else {
+				fmt.Println("You are currently in check!")
+			}
 			return false
 		}
 	} else if b.kingW.isCheck(b) {
-		b.board[p.x][p.y] = currentPiece
-		b.board[newX][newY] = replaceingPiece
+		resetBoard(b, p, currentPiece, replaceingPiece, newX, newY)
 		fmt.Println("Invalid Move")
-		fmt.Println("You are currently in check!")
+		if p.symbol == "K" {
+			fmt.Println("You will be in check!")
+		} else {
+			fmt.Println("You are currently in check!")
+		}
 		return false
 	}
-	b.board[p.x][p.y] = currentPiece
-	b.board[newX][newY] = replaceingPiece
+	resetBoard(b, p, currentPiece, replaceingPiece, newX, newY)
 	// If moved piece results in check return False
 	//Check by checking for check with this piece not in current position
 	//do these in this order
@@ -447,7 +491,33 @@ func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
 			allowedMoves = append(allowedMoves, Position{p.x + 1, p.y - 1})
 		}
 
+		//Castling
+		if p.isBlack {
+			if !b.castleCheck[1] && !b.castleCheck[5] && b.isEmpty(7, 5) && b.isEmpty(7, 6) {
+				if p.checkCastleGap(b, 7, 5) && p.checkCastleGap(b, 7, 6) {
+					allowedMoves = append(allowedMoves, Position{7, 6})
+				}
+			}
+			if !b.castleCheck[1] && !b.castleCheck[4] && b.isEmpty(7, 3) && b.isEmpty(7, 2) && b.isEmpty(7, 1) {
+				if p.checkCastleGap(b, 7, 3) && p.checkCastleGap(b, 7, 2) && p.checkCastleGap(b, 7, 1) {
+					allowedMoves = append(allowedMoves, Position{7, 2})
+				}
+			}
+		} else {
+			if !b.castleCheck[0] && !b.castleCheck[3] && b.isEmpty(0, 5) && b.isEmpty(0, 6) {
+				if p.checkCastleGap(b, 0, 5) && p.checkCastleGap(b, 0, 6) {
+					allowedMoves = append(allowedMoves, Position{0, 6})
+				}
+			}
+			if !b.castleCheck[0] && !b.castleCheck[2] && b.isEmpty(0, 3) && b.isEmpty(0, 2) && b.isEmpty(0, 1) {
+				if p.checkCastleGap(b, 0, 3) && p.checkCastleGap(b, 0, 2) && p.checkCastleGap(b, 0, 1) {
+					allowedMoves = append(allowedMoves, Position{0, 2})
+				}
+			}
+		}
+
 		//Check if each of the moves dont result in a check
+		//Done
 		//add castling by checking if king and rooks on starting square and not checks on square in between
 
 	}
@@ -482,6 +552,43 @@ func (p Piece) move(b *Board, newX, newY int) {
 			b.lastPawnMoveW = Position{-2, -2}
 		}
 
+		//Sets castle checking bools for moved rooks
+		if p.symbol == "R" {
+			if p.isBlack {
+				if !b.castleCheck[4] && p.x == 7 && p.y == 0 {
+					b.castleCheck[4] = true
+				} else if !b.castleCheck[5] && p.x == 7 && p.y == 7 {
+					b.castleCheck[5] = true
+				}
+			} else {
+				if !b.castleCheck[2] && p.x == 0 && p.y == 0 {
+					b.castleCheck[2] = true
+				} else if !b.castleCheck[3] && p.x == 0 && p.y == 7 {
+					b.castleCheck[3] = true
+				}
+			}
+		}
+		//Moves king and rook for castling
+		if p.symbol == "K" {
+			if p.isBlack && p.x == 7 && p.y == 4 {
+				if newY == 6 {
+					b.board[7][5] = b.board[7][7]
+					b.board[7][7] = Piece{7, 7, " ",  true}
+				} else if newY == 2 {
+					b.board[7][3] = b.board[7][0]
+					b.board[7][0] = Piece{7, 0, " ",  true}
+				}
+			} else if !p.isBlack && p.x == 0 && p.y == 4 {
+				if newY == 6 {
+					b.board[0][5] = b.board[0][7]
+					b.board[0][7] = Piece{0, 7, " ",  false}
+				} else if newY == 2 {
+					b.board[0][3] = b.board[0][0]
+					b.board[0][0] = Piece{0, 0, " ",  false}
+				}
+			}
+		}
+
 		b.board[p.x][p.y] = Piece{p.x, p.y, " ", false}
 		p.x = newX
 		p.y = newY
@@ -491,8 +598,14 @@ func (p Piece) move(b *Board, newX, newY int) {
 		if p.symbol == "K" {
 			if p.isBlack {
 				b.kingB = p
+				if !b.castleCheck[1] {
+					b.castleCheck[1] = true
+				}
 			} else {
 				b.kingW = p
+				if !b.castleCheck[0] {
+					b.castleCheck[0] = true
+				}
 			}
 		}
 

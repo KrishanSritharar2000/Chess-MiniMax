@@ -65,6 +65,18 @@ func main() {
 	board.board[6][7].move(&board, 4,7)
 	fmt.Println("---------------------")
 	board.board[4][1].move(&board, 7,2)
+	board.board[2][4].move(&board, 2,5)
+	fmt.Println("---------------------")
+
+	board.board[7][5].move(&board, 5,3)
+	fmt.Println("---------------------")
+
+	board.board[7][4].move(&board, 7,6)
+
+
+
+
+
 
 
 
