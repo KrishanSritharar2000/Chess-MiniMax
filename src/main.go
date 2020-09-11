@@ -2,11 +2,87 @@ package main
 
 import (
 	"fmt"
+	"bufio"
+	"os"
+	"strings"
 )
 
+type Game struct {
+	board Board
+	isWhiteTurn bool
+}
+
+func (g Game) nextTurn() {
+	g.isWhiteTurn = !g.isWhiteTurn
+}
+
+//Pre: Takes in a character
+//Post: True if letter in A-G
+func isLetter(s string) bool {
+	return s == "a" || s == "b" || s == "c" || s == "d" || s == "e" || s == "f" || s == "g" || s == "h"
+}
+
+//Pre: Takes in a character
+//Post: True if number between 0-7
+func isNumber(s string) bool {
+	return s == "0" || s == "1" || s == "2" || s == "3" || s == "4" || s == "5" || s == "6" || s == "7"
+}
+
+func (g Game) getTurn(r bufio.Reader) (string, string) {
+	if g.isWhiteTurn {
+		fmt.Println("White's Turn")
+	} else {
+		fmt.Println("Black's Turn")
+	}
+	var str, dst string
+	for {
+		fmt.Println("Enter the piece you want to move and where to: ")
+		str, _ = r.ReadString('\n')
+		fmt.Println("String 1", str, len(str))
+		str = strings.ToLower(str)
+		str = strings.TrimSpace(str)
+		fmt.Println("String 2", str, len(str))
+
+		if string(str[2]) == " " {
+			dst = str[3:]
+			fmt.Println("String 3", dst)
+			str = str[:2]
+			fmt.Println("String 4", str, len(str))
+			dst = strings.TrimSpace(dst)
+			fmt.Println("String 5", dst, len(dst))
+
+			if len(dst) == 2 {
+				fmt.Println("String 6", dst)
+				fmt.Println(string(str), string(dst))
+				if isLetter(string(str[0])) && isLetter(string(dst[0])) && isNumber(string(str[1])) && isNumber(string(dst[1])) {
+					break
+				}
+			}
+		}
+		fmt.Println("That is an invalid move")
+		fmt.Println("Please use the format: [LetterNumber LetterNumber] to provide the coordinates of the chosen piece, and where to move it")
+	}
+	return string(str), string(dst)
+}
 
 func main() {
-	board := Board{}
+	g := Game{Board{}, true}
+	reader := bufio.NewReader(os.Stdin)
+	a, b := g.getTurn(*reader)
+	fmt.Println(a, b)
+	// g.testBoard()
+    // fmt.Print("Enter text: ")
+    // text, _ := reader.ReadString('\n')
+	// fmt.Println(text, len(text))
+	// text = strings.TrimSpace(text)
+	// fmt.Println(len(text))
+	// for i := 0; i < len(text); i++ {
+	// 	fmt.Println(string(text[i]))
+	// }
+}
+
+func (g Game) testBoard() {
+	board := g.board 
 
 	fmt.Println("Hello World3!")
 	SetupBoard(&board)
@@ -72,23 +148,7 @@ func main() {
 	fmt.Println("---------------------")
 
 	board.board[7][4].move(&board, 7,6)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	
 
 	fmt.Println("END Is black king currently in check: ", board.kingB.isCheck(&board))
 	fmt.Println("END Is white king currently in check: ", board.kingW.isCheck(&board))
@@ -100,6 +160,10 @@ func main() {
 	// board.board[1][2].move(&board, 3, 2)
 	fmt.Println(board)
 
+	fmt.Println("---------------------")
+	// var fir string 
+	// fmt.Scanln(&fir)
+	// fmt.Println("This is the string:" , fir, string(fir[4]), len(fir))
 	// colorReset := "\033[0m"
 
     // colorRed := "\033[31m"
