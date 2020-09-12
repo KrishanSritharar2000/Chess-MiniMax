@@ -12,8 +12,9 @@ type Game struct {
 	isWhiteTurn bool
 }
 
-func (g Game) nextTurn() {
+func (g *Game) nextTurn() {
 	g.isWhiteTurn = !g.isWhiteTurn
+
 }
 
 //Pre: Takes in a character
@@ -25,51 +26,82 @@ func isLetter(s string) bool {
 //Pre: Takes in a character
 //Post: True if number between 0-7
 func isNumber(s string) bool {
-	return s == "0" || s == "1" || s == "2" || s == "3" || s == "4" || s == "5" || s == "6" || s == "7"
+	return s == "1" || s == "2" || s == "3" || s == "4" || s == "5" || s == "6" || s == "7" || s == "8"
 }
 
-func (g Game) getTurn(r bufio.Reader) (string, string) {
+func (g *Game) getTurn(r bufio.Reader) (string, string) {
+	var isCheck bool
 	if g.isWhiteTurn {
 		fmt.Println("White's Turn")
+		isCheck = g.board.kingW.isCheck(&g.board)
 	} else {
 		fmt.Println("Black's Turn")
+		isCheck = g.board.kingB.isCheck(&g.board)
+	}
+	if isCheck {
+		fmt.Println("CHECK")
 	}
 	var str, dst string
 	for {
-		fmt.Println("Enter the piece you want to move and where to: ")
+		fmt.Println("\nEnter the piece you want to move and where to: ")
 		str, _ = r.ReadString('\n')
-		fmt.Println("String 1", str, len(str))
 		str = strings.ToLower(str)
 		str = strings.TrimSpace(str)
-		fmt.Println("String 2", str, len(str))
 
 		if string(str[2]) == " " {
 			dst = str[3:]
-			fmt.Println("String 3", dst)
 			str = str[:2]
-			fmt.Println("String 4", str, len(str))
 			dst = strings.TrimSpace(dst)
-			fmt.Println("String 5", dst, len(dst))
 
 			if len(dst) == 2 {
-				fmt.Println("String 6", dst)
-				fmt.Println(string(str), string(dst))
 				if isLetter(string(str[0])) && isLetter(string(dst[0])) && isNumber(string(str[1])) && isNumber(string(dst[1])) {
 					break
-				}
+				} 
 			}
 		}
-		fmt.Println("That is an invalid move")
-		fmt.Println("Please use the format: [LetterNumber LetterNumber] to provide the coordinates of the chosen piece, and where to move it")
+		fmt.Println("\nThat is an invalid move")
+		fmt.Println("Please use the format: [LetterNumber LetterNumber]")
+		fmt.Println("To provide the coordinates [A-G 1-8] of the chosen piece, and where to move it")
 	}
 	return string(str), string(dst)
 }
 
+func (g *Game) makeMove(start, end string) bool {
+	var startX, startY, endX, endY int
+	startY = int(start[0]) - int('a')
+	startX = int(start[1]) - int('1')
+	endY = int(end[0]) - int('a')
+	endX = int(end[1]) - int('1')
+
+	piece := g.board.board[startX][startY]	
+	if piece.symbol == " " {
+		fmt.Println("There is no piece there!")
+		return false
+	} else if piece.isBlack == g.isWhiteTurn {
+		fmt.Println("That is not your piece, you cannot move it!")
+		return false
+	}
+
+	result := g.board.board[startX][startY].move(&g.board, endX, endY)
+	//moving white piece need to check piece is white
+	if result {
+		g.nextTurn()
+	} else {
+		fmt.Println("That move is not allowed")
+	}
+	return result
+}
+
 func main() {
 	g := Game{Board{}, true}
+	SetupBoard(&g.board)
+	fmt.Println(g.board)
 	reader := bufio.NewReader(os.Stdin)
-	a, b := g.getTurn(*reader)
-	fmt.Println(a, b)
+	for {
+		startPos, endPos := g.getTurn(*reader)
+		g.makeMove(startPos, endPos)
+		fmt.Println(g.board)
+	}
 	// g.testBoard()
     // fmt.Print("Enter text: ")
     // text, _ := reader.ReadString('\n')
@@ -82,7 +114,7 @@ func main() {
 }
 
 func (g Game) testBoard() {
-	board := g.board 
+	board := Board{}
 
 	fmt.Println("Hello World3!")
 	SetupBoard(&board)

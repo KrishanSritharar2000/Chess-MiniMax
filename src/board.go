@@ -292,8 +292,8 @@ func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
 	//if in check, check if moving piece fixes check
 
 	allowedMoves := make([]Position, 0)
-	fmt.Println("XY", p.x, p.y, newX, newY)
-	fmt.Println("WhiteKing", b.kingW, "BlackKing", b.kingB)
+	// fmt.Println("XY", p.x, p.y, newX, newY)
+	// fmt.Println("WhiteKing", b.kingW, "BlackKing", b.kingB)
 	switch p.symbol {
 	case "P":
 		// If pawn in start position advance 2
@@ -331,7 +331,7 @@ func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
 				allowedMoves = append(allowedMoves, Position{b.lastPawnMoveW.x - 1, b.lastPawnMoveW.y})
 			}
 		} else {
-			fmt.Println("Last moved black pawn", b.lastPawnMoveB)
+			// fmt.Println("Last moved black pawn", b.lastPawnMoveB)
 			if p.x == 4 && (b.lastPawnMoveB.y == p.y-1 || b.lastPawnMoveB.y == p.y+1) {
 				allowedMoves = append(allowedMoves, Position{b.lastPawnMoveB.x + 1, b.lastPawnMoveB.y})
 			}
@@ -521,12 +521,12 @@ func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
 		//add castling by checking if king and rooks on starting square and not checks on square in between
 
 	}
-	fmt.Println("moves", allowedMoves)
-	if len(allowedMoves) > 0 {
-		fmt.Println("moves First item", allowedMoves[0].x)
-	}
-	fmt.Println("Is black king currently in check: ", b.kingB.isCheck(b))
-	fmt.Println("Is white king currently in check: ", b.kingW.isCheck(b))
+	// fmt.Println("moves", allowedMoves)
+	// if len(allowedMoves) > 0 {
+	// 	fmt.Println("moves First item", allowedMoves[0].x)
+	// }
+	// fmt.Println("Is black king currently in check: ", b.kingB.isCheck(b))
+	// fmt.Println("Is white king currently in check: ", b.kingW.isCheck(b))
 	for _, val := range allowedMoves {
 		if val.x == newX && val.y == newY {
 			return true
@@ -536,7 +536,7 @@ func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
 	return false
 }
 
-func (p Piece) move(b *Board, newX, newY int) {
+func (p Piece) move(b *Board, newX, newY int) bool {
 	// Check if allowed move
 	if p.checkAllowedMoves(b, newX, newY) {
 		//Sets pawn positions for en passant
@@ -609,9 +609,10 @@ func (p Piece) move(b *Board, newX, newY int) {
 			}
 		}
 
-		fmt.Println("Moved piece to ", newX, newY, p.x, p.y)
+		// fmt.Println("Moved piece to ", newX, newY, p.x, p.y)
+		return true
 	}
-
+	return false
 }
 
 //String representation of board
@@ -619,11 +620,11 @@ func (b Board) String() string {
 	var board string
 	var swapColour bool
 	board += "\n----------------------------\n"
-	// board += "|  a  b  c  d  e  f  g  h  |\n"
-	board += "|  0  1  2  3  4  5  6  7  |\n"
+	board += "|  a  b  c  d  e  f  g  h  |\n"
+	// board += "|  0  1  2  3  4  5  6  7  |\n"
 	board += "----------------------------\n"
 	for row := 7; row >= 0; row-- {
-		board += colourReset + strconv.Itoa(row) + "|"
+		board += colourReset + strconv.Itoa(row+1) + "|"
 		for col := 0; col <= 7; col++ {
 			piece := b.board[row][col]
 			if piece.isBlack {
@@ -642,11 +643,11 @@ func (b Board) String() string {
 			swapColour = !swapColour
 		}
 		swapColour = !swapColour
-		board += colourReset + "|" + strconv.Itoa(row) + "\n"
+		board += colourReset + "|" + strconv.Itoa(row+1) + "\n"
 	}
 	board += "----------------------------\n"
-	// board += "|  a  b  c  d  e  f  g  h  |\n"
-	board += "|  0  1  2  3  4  5  6  7  |\n"
+	board += "|  a  b  c  d  e  f  g  h  |\n"
+	// board += "|  0  1  2  3  4  5  6  7  |\n"
 	board += "----------------------------\n"
 	return fmt.Sprintf("%v", board)
 }
