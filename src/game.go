@@ -8,7 +8,7 @@ import (
 )
 
 type Game struct {
-	board Board
+	Board Board
 	isWhiteTurn bool
 }
 
@@ -33,10 +33,10 @@ func (g *Game) getTurn(r bufio.Reader) (string, string) {
 	var isCheck bool
 	if g.isWhiteTurn {
 		fmt.Println("White's Turn")
-		isCheck = g.board.kingW.isCheck(&g.board)
+		isCheck = g.Board.kingW.isCheck(&g.Board)
 	} else {
 		fmt.Println("Black's Turn")
-		isCheck = g.board.kingB.isCheck(&g.board)
+		isCheck = g.Board.kingB.isCheck(&g.Board)
 	}
 	if isCheck {
 		fmt.Println("CHECK")
@@ -73,7 +73,7 @@ func (g *Game) makeMove(start, end string) bool {
 	endY = int(end[0]) - int('a')
 	endX = int(end[1]) - int('1')
 
-	piece := g.board.board[startX][startY]	
+	piece := g.Board.Board[startX][startY]	
 	if piece.symbol == " " {
 		fmt.Println("There is no piece there!")
 		return false
@@ -82,7 +82,7 @@ func (g *Game) makeMove(start, end string) bool {
 		return false
 	}
 
-	result := g.board.board[startX][startY].move(&g.board, endX, endY)
+	result := g.Board.Board[startX][startY].move(&g.Board, endX, endY)
 	//moving white piece need to check piece is white
 	if result {
 		g.nextTurn()
@@ -92,15 +92,15 @@ func (g *Game) makeMove(start, end string) bool {
 	return result
 }
 
-func main() {
+func StartGame() {
 	g := Game{Board{}, true}
-	SetupBoard(&g.board)
-	fmt.Println(g.board)
+	SetupBoard(&g.Board)
+	fmt.Println(g.Board)
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		startPos, endPos := g.getTurn(*reader)
 		g.makeMove(startPos, endPos)
-		fmt.Println(g.board)
+		fmt.Println(g.Board)
 	}
 	// g.testBoard()
     // fmt.Print("Enter text: ")
@@ -114,83 +114,83 @@ func main() {
 }
 
 func (g Game) testBoard() {
-	board := Board{}
+	Board := Board{}
 
 	fmt.Println("Hello World3!")
-	SetupBoard(&board)
-	// fmt.Println(board)
-	// board.board[1][0].move(&board, 2, 0)
-	fmt.Println(board)
-	board.board[0][1].move(&board, 2, 2)
-	fmt.Println(board)
-	// board.board[2][2].move(&board, 4, 3)
-	// board.board[7][1].move(&board, 5, 2)
-	// board.board[5][2].move(&board, 5, 4)
-	// board.board[4][3].move(&board, 5, 4)
-	board.board[1][3].move(&board, 3, 3)
-	board.board[3][3].move(&board, 4, 3)
-	board.board[0][3].move(&board, 2, 3)
-	board.board[2][3].move(&board, 4, 5)
-	board.board[4][5].move(&board, 6, 4)
-	board.board[0][4].move(&board, 1, 3)
-	board.board[1][3].move(&board, 3, 3)
-	board.board[6][4].move(&board, 5, 4)
-	board.board[7][3].move(&board, 5, 5)
-	board.board[4][4].move(&board, 3, 4)
+	SetupBoard(&Board)
+	// fmt.Println(Board)
+	// Board.Board[1][0].move(&Board, 2, 0)
+	fmt.Println(Board)
+	Board.Board[0][1].move(&Board, 2, 2)
+	fmt.Println(Board)
+	// Board.Board[2][2].move(&Board, 4, 3)
+	// Board.Board[7][1].move(&Board, 5, 2)
+	// Board.Board[5][2].move(&Board, 5, 4)
+	// Board.Board[4][3].move(&Board, 5, 4)
+	Board.Board[1][3].move(&Board, 3, 3)
+	Board.Board[3][3].move(&Board, 4, 3)
+	Board.Board[0][3].move(&Board, 2, 3)
+	Board.Board[2][3].move(&Board, 4, 5)
+	Board.Board[4][5].move(&Board, 6, 4)
+	Board.Board[0][4].move(&Board, 1, 3)
+	Board.Board[1][3].move(&Board, 3, 3)
+	Board.Board[6][4].move(&Board, 5, 4)
+	Board.Board[7][3].move(&Board, 5, 5)
+	Board.Board[4][4].move(&Board, 3, 4)
 	
-	fmt.Println("END Is black king currently in check: ", board.kingB.isCheck(&board))
-	fmt.Println("END Is white king currently in check: ", board.kingW.isCheck(&board))
-	board.board[3][4].move(&board, 2, 4)
-	board.board[1][3].move(&board, 2, 4)
+	fmt.Println("END Is black king currently in check: ", Board.kingB.isCheck(&Board))
+	fmt.Println("END Is white king currently in check: ", Board.kingW.isCheck(&Board))
+	Board.Board[3][4].move(&Board, 2, 4)
+	Board.Board[1][3].move(&Board, 2, 4)
 
-	board.board[5][5].move(&board, 5,6)
-	// board.board[4][4].move(&board, 3,5)
-	// board.board[3][5].move(&board, 2,5)
-	// board.board[3][4].move(&board, 3,3)
-	// board.board[3][3].move(&board, ,3)
-	// board.board[1][3].move(&board, 1,4)
-	// board.board[1][4].move(&board, 1,5)
-	// board.board[1][5].move(&board, 3,5)
-	board.board[7][6].move(&board, 5,5)
-	board.board[5][5].move(&board, 3,6)
-	board.board[3][6].move(&board, 5,7)
-	board.board[5][7].move(&board, 4,5)
-	board.board[4][5].move(&board, 3,3)
-	board.board[3][3].move(&board, 1,2)
-	board.board[1][2].move(&board, 0,4)
+	Board.Board[5][5].move(&Board, 5,6)
+	// Board.Board[4][4].move(&Board, 3,5)
+	// Board.Board[3][5].move(&Board, 2,5)
+	// Board.Board[3][4].move(&Board, 3,3)
+	// Board.Board[3][3].move(&Board, ,3)
+	// Board.Board[1][3].move(&Board, 1,4)
+	// Board.Board[1][4].move(&Board, 1,5)
+	// Board.Board[1][5].move(&Board, 3,5)
+	Board.Board[7][6].move(&Board, 5,5)
+	Board.Board[5][5].move(&Board, 3,6)
+	Board.Board[3][6].move(&Board, 5,7)
+	Board.Board[5][7].move(&Board, 4,5)
+	Board.Board[4][5].move(&Board, 3,3)
+	Board.Board[3][3].move(&Board, 1,2)
+	Board.Board[1][2].move(&Board, 0,4)
 
-	board.board[0][4].move(&board, 1,6)
-	board.board[1][6].move(&board, 3,7)
+	Board.Board[0][4].move(&Board, 1,6)
+	Board.Board[1][6].move(&Board, 3,7)
 
-	board.board[1][1].move(&board, 3,1)
-	board.board[3][1].move(&board, 4,1)
+	Board.Board[1][1].move(&Board, 3,1)
+	Board.Board[3][1].move(&Board, 4,1)
 	fmt.Println("---------------------")
-	board.board[6][2].move(&board, 4,2)
+	Board.Board[6][2].move(&Board, 4,2)
 	fmt.Println("---------------------")
-	board.board[4][1].move(&board, 7,2)
+	Board.Board[4][1].move(&Board, 7,2)
 	fmt.Println("---------------------")
-	board.board[1][5].move(&board, 3,5)
-	board.board[6][7].move(&board, 4,7)
+	Board.Board[1][5].move(&Board, 3,5)
+	Board.Board[6][7].move(&Board, 4,7)
 	fmt.Println("---------------------")
-	board.board[4][1].move(&board, 7,2)
-	board.board[2][4].move(&board, 2,5)
-	fmt.Println("---------------------")
-
-	board.board[7][5].move(&board, 5,3)
+	Board.Board[4][1].move(&Board, 7,2)
+	Board.Board[2][4].move(&Board, 2,5)
 	fmt.Println("---------------------")
 
-	board.board[7][4].move(&board, 7,6)
+	Board.Board[7][5].move(&Board, 5,3)
+	fmt.Println("---------------------")
+
+	Board.Board[7][4].move(&Board, 7,6)
 	
 
-	fmt.Println("END Is black king currently in check: ", board.kingB.isCheck(&board))
-	fmt.Println("END Is white king currently in check: ", board.kingW.isCheck(&board))
+	fmt.Println("END Is black king currently in check: ", Board.kingB.isCheck(&Board))
+	fmt.Println("END Is white king currently in check: ", Board.kingW.isCheck(&Board))
 
 
 
-	// fmt.Println(board)
-	// board.board[6][3].move(&board, 2, 3)
-	// board.board[1][2].move(&board, 3, 2)
-	fmt.Println(board)
+	// fmt.Println(Board)
+	// Board.Board[6][3].move(&Board, 2, 3)
+	// Board.Board[1][2].move(&Board, 3, 2)
+	fmt.Println(Board)
 
 	fmt.Println("---------------------")
 	// var fir string 
