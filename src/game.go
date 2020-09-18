@@ -9,11 +9,11 @@ import (
 
 type Game struct {
 	Board Board
-	isWhiteTurn bool
+	IsWhiteTurn bool
 }
 
 func (g *Game) nextTurn() {
-	g.isWhiteTurn = !g.isWhiteTurn
+	g.IsWhiteTurn = !g.IsWhiteTurn
 
 }
 
@@ -31,7 +31,7 @@ func isNumber(s string) bool {
 
 func (g *Game) getTurn(r bufio.Reader) (string, string) {
 	var isCheck bool
-	if g.isWhiteTurn {
+	if g.IsWhiteTurn {
 		fmt.Println("White's Turn")
 		isCheck = g.Board.kingW.isCheck(&g.Board)
 	} else {
@@ -74,10 +74,10 @@ func (g *Game) makeMove(start, end string) bool {
 	endX = int(end[1]) - int('1')
 
 	piece := g.Board.Board[startX][startY]	
-	if piece.symbol == " " {
+	if piece.Symbol == " " {
 		fmt.Println("There is no piece there!")
 		return false
-	} else if piece.isBlack == g.isWhiteTurn {
+	} else if piece.IsBlack == g.IsWhiteTurn {
 		fmt.Println("That is not your piece, you cannot move it!")
 		return false
 	}
