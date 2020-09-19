@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"html/template"
 	"log"
+	"time"
 )
 
 var game = Game{Board{}, true}
@@ -16,6 +17,10 @@ type WebpageData struct {
 }
 
 func HomePage(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		log.Print("Not GET request recieved on Home Page")
+		return
+	}
 	vars := WebpageData{&game, "Krishan"}
 	t, err := template.ParseFiles("website/index.html")
 	if err != nil {
@@ -28,18 +33,37 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 }
 
 func GamePage(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles("website/game.html")
-	if err != nil {
-		log.Print("Error parsing template: ", err)
-	}
-	err = t.Execute(w, WebpageData{&game, "Start Game"})
-	if err != nil {
-		log.Print("Error during executing: ", err)
+
+	switch r.Method {
+	case "GET":
+		t, err := template.ParseFiles("website/game.html")
+		if err != nil {
+			log.Print("Error parsing template: ", err)
+		}
+		err = t.Execute(w, WebpageData{&game, "Start Game"})
+		if err != nil {
+			log.Print("Error during executing: ", err)
+		}
+	case "POST":
+		r.ParseMultipartForm(0)
+		message := r.FormValue("white");
+		if len(message) == 0 {
+			message = r.FormValue("black")
+		}
+		 
+
+		fmt.Println("----------------------------------")
+		fmt.Println("Message from Client: ",message, len(message))
+		// respond to client's request
+		fmt.Fprintf(w, "Server: %s \n", message+ " | " + time.Now().Format(time.RFC3339))
 	}
 }
 
 func GamePageSelected(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("SUCCESS WE MADE IT TO SELECTED")
+	r.ParseForm()
+	fmt.Println("Form: ")
+	fmt.Println(r.Form)
 	t, err := template.ParseFiles("website/game.html")
 	if err != nil {
 		log.Print("Error parsing template: ", err)

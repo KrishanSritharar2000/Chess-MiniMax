@@ -11,11 +11,22 @@
   <body>
     <h2>{{.Player}}</h2>
 
-    <form action="/" method="POST">
+    <form action="/" method="GET">
       <input type="submit" value="Back" />
     </form>
+    <button id="return" value="DidThisWork" type="button" name="testButton">test</button>
     <div class="chess-grid">
-      <button value="DidThisWork" type="button">test</button>
+      {{$colourLight := true}}
+      {{range $board:=.Game.Board.Board}}
+        {{range $board}}
+          <button {{if $colourLight}} class="light" {{else}} class="dark" {{end}} 
+                  value={{.Symbol}} 
+                  {{if (eq .Symbol " ")}} name="empty" {{else if .IsBlack}} name="black" {{else}} name="white" {{end}}>
+                  {{.Symbol}}</button>
+          {{$colourLight = not $colourLight}}
+        {{end}}
+        {{$colourLight = not $colourLight}}
+      {{end}}
     </div>
   </body>
 </html>
