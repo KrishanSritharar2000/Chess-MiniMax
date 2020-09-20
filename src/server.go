@@ -43,6 +43,7 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
+		SetupBoard(&game.Board)
 		tmpl, err := template.New("game.html").Funcs(template.FuncMap{
 			"minus": func(a, b int) int {
 				return a - b
@@ -83,6 +84,7 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 			x, y := int(rest[0])-int('0'), int(rest[1])-int('0')
 			fmt.Println("Give the move options for the piece at:", x, y, game.Board.Board[x][y])
 			possibleMoves := game.Board.Board[x][y].generatePossibleMoves(&game.Board)
+			possibleMoves = game.Board.Board[x][y].removeInvalidMoves(&game.Board, possibleMoves)
 			fmt.Println("These are the possible moves:\n", possibleMoves)
 			fmt.Fprintf(w, getString(possibleMoves))
 		case "mov":
@@ -127,7 +129,6 @@ func GamePageSelected(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	// StartGame()
-	SetupBoard(&game.Board)
 
 	http.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("./website"))))
 	http.HandleFunc("/", HomePage)

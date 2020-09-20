@@ -47,6 +47,15 @@ func Contains(a []string, x string) bool {
 	return false
 }
 
+func ContainsInt(a []int, x int) bool {
+	for _, n := range a {
+		if x == n {
+			return true
+		}
+	}
+	return false
+}
+
 func (p Piece) isCheck(b *Board) bool {
 
 	//Hoizontal and Vertical
@@ -238,8 +247,6 @@ func resetBoard(b *Board, p, currentPiece, replacingPiece Piece, newX, newY int)
 	b.Board[newX][newY] = replacingPiece
 }
 
-
-
 //Pre: newX and newY are in Board boundaries
 //Post: Declaration of allowed move
 func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
@@ -316,6 +323,7 @@ func (p Piece) generatePossibleMoves(b *Board) []Position {
 	allowedMoves := make([]Position, 0)
 	// fmt.Println("XY", p.x, p.y, newX, newY)
 	// fmt.Println("WhiteKing", b.kingW, "BlackKing", b.kingB)
+	fmt.Println("THIS IS THE X AND Y", p.x, p.y)
 	switch p.Symbol {
 	case "P":
 		// If pawn in start position advance 2
@@ -328,7 +336,7 @@ func (p Piece) generatePossibleMoves(b *Board) []Position {
 		//Advance 1
 		if !p.IsBlack && b.isEmpty(p.x+1, p.y) {
 			allowedMoves = append(allowedMoves, Position{p.x + 1, p.y})
-		} else if b.isEmpty(p.x-1, p.y) {
+		} else if p.IsBlack && b.isEmpty(p.x-1, p.y) {
 			allowedMoves = append(allowedMoves, Position{p.x - 1, p.y})
 		}
 
@@ -546,6 +554,59 @@ func (p Piece) generatePossibleMoves(b *Board) []Position {
 	return allowedMoves
 }
 
+func (p Piece) removeInvalidMoves(b *Board, slice []Position) []Position {
+	//Checks if moved piece produces check and
+	//Checks if moved piece resolves current check
+	fmt.Println("THIS IS THE MOVES BEFORE INVALID REMOVED", slice)
+	var removeIndex []int
+	var reset bool
+	for i, val := range slice {
+		reset = false
+		currentPiece := b.Board[p.x][p.y]
+		//Remove the piece
+		b.Board[p.x][p.y] = Piece{p.x, p.y, " ", false}
+		replaceingPiece := b.Board[val.x][val.y]
+		b.Board[val.x][val.y] = currentPiece
+		if p.Symbol == "K" {
+			if p.IsBlack {
+				b.kingB = Piece{val.x, val.y, "K", true}
+			} else {
+				b.kingW = Piece{val.x, val.y, "K", false}
+			}
+		}
+
+		if p.IsBlack {
+			if b.kingB.isCheck(b) {
+				fmt.Println("REMOVE THIS", val)
+				reset = true
+				resetBoard(b, p, currentPiece, replaceingPiece, val.x, val.y)
+				removeIndex = append(removeIndex, i)
+			}
+		} else if b.kingW.isCheck(b) {
+			fmt.Println("REMOVE THIS", val)
+			reset = true
+			resetBoard(b, p, currentPiece, replaceingPiece, val.x, val.y)
+			removeIndex = append(removeIndex, i)
+
+		}
+		if !reset {
+			resetBoard(b, p, currentPiece, replaceingPiece, val.x, val.y)
+		}
+	}
+	if len(removeIndex) > 0 {
+		fmt.Println("This is the list of indexs to remove:", removeIndex)
+		allowedMoves := make([]Position, 0)
+		for i := 0; i < len(slice); i++ {
+			if !ContainsInt(removeIndex, i) {
+				allowedMoves = append(allowedMoves, slice[i])
+			}
+		}
+		return allowedMoves
+	}	
+	return slice
+}
+
+
 func (p Piece) move(b *Board, newX, newY int) bool {
 	// Check if allowed move
 	if p.checkAllowedMoves(b, newX, newY) {
@@ -583,18 +644,18 @@ func (p Piece) move(b *Board, newX, newY int) bool {
 			if p.IsBlack && p.x == 7 && p.y == 4 {
 				if newY == 6 {
 					b.Board[7][5] = b.Board[7][7]
-					b.Board[7][7] = Piece{7, 7, " ",  true}
+					b.Board[7][7] = Piece{7, 7, " ", true}
 				} else if newY == 2 {
 					b.Board[7][3] = b.Board[7][0]
-					b.Board[7][0] = Piece{7, 0, " ",  true}
+					b.Board[7][0] = Piece{7, 0, " ", true}
 				}
 			} else if !p.IsBlack && p.x == 0 && p.y == 4 {
 				if newY == 6 {
 					b.Board[0][5] = b.Board[0][7]
-					b.Board[0][7] = Piece{0, 7, " ",  false}
+					b.Board[0][7] = Piece{0, 7, " ", false}
 				} else if newY == 2 {
 					b.Board[0][3] = b.Board[0][0]
-					b.Board[0][0] = Piece{0, 0, " ",  false}
+					b.Board[0][0] = Piece{0, 0, " ", false}
 				}
 			}
 		}

@@ -8,16 +8,17 @@ $(document).ready(function () {
   var whiteTurn = true;
 
   $("#return").click(function () {
-    var myForm = document.createElement("FORM");
-    myForm.setAttribute("action", "/gameSelected");
-    myForm.setAttribute("method", "POST");
+    location.reload()
+    // var myForm = document.createElement("FORM");
+    // myForm.setAttribute("action", "//#endregion");
+    // myForm.setAttribute("method", "GET");
 
-    var input = document.createElement("INPUT");
-    input.setAttribute("type", "text");
-    input.setAttribute("value", $(this).val());
-    myForm.appendChild(input);
-    $(document.body).append(myForm);
-    $(myForm).submit();
+    // var input = document.createElement("INPUT");
+    // input.setAttribute("type", "text");
+    // input.setAttribute("value", $(this).val());
+    // myForm.appendChild(input);
+    // $(document.body).append(myForm);
+    // $(myForm).submit();
   });
 
   function handleResponse(response, mode, clickedButton) {
