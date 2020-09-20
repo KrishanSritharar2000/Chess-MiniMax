@@ -9,8 +9,9 @@ import (
 	"time"
 )
 
-var game = Game{Board{}, true}
-
+var (
+	game = Game{Board{}, true}
+)
 type WebpageData struct {
 	Game   *Game
 	Player string
@@ -36,11 +37,19 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		t, err := template.ParseFiles("website/game.html")
+		tmpl, err := template.New("game.html").Funcs(template.FuncMap{
+			"minus": func(a, b int) int {
+				return a - b
+			},
+			"add": func(a, b int) int {
+				return a + b
+			},
+		}).ParseFiles("website/game.html")
+		// t, err := template.ParseFiles("website/game.html")
 		if err != nil {
 			log.Print("Error parsing template: ", err)
 		}
-		err = t.Execute(w, WebpageData{&game, "Start Game"})
+		err = tmpl.Execute(w, WebpageData{&game, "Start Game"})
 		if err != nil {
 			log.Print("Error during executing: ", err)
 		}

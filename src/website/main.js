@@ -1,6 +1,8 @@
 $(document).ready(function(){
     console.log("This is on start up")
     const url = "127.0.0.1:8080"
+    const movesDisplayed = false
+    const whiteTurn = true
 
     $("#return").click(function(){
       var myForm = document.createElement("FORM");
@@ -31,16 +33,20 @@ $(document).ready(function(){
 
     $(".light, .dark").click(function(){
       var myForm = document.createElement("FORM");
-      // myForm.setAttribute("action","/gameSelected");
       myForm.setAttribute("method", "POST");
       
       var input = document.createElement("INPUT");
       input.setAttribute("type", "text");
       input.setAttribute("name", $(this).prop("name"))
-      input.setAttribute("value", $(this).prop("name") + " " + $(this).val() + " piece clicked");
+      if (!movesDisplayed) {
+        if ((whiteTurn && $(this).prop("name") == "black") || (!whiteTurn && $(this).prop("name") == "white")) {
+          console.log("NO REQUEST TO SERVER. THAT IS OPPONENTS PIECE")
+          return
+        }
+        input.setAttribute("value", $(this).prop("name") + " " + $(this).val() + " piece selected");
+      }
       myForm.appendChild(input)
-      $(document.body).append(myForm);
-      // $(myForm).submit();
+
       fetch("/game", {
           method:"POST",
           body: new FormData(myForm)
