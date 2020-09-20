@@ -21,6 +21,32 @@ $(document).ready(function () {
     // $(myForm).submit();
   });
 
+  function swapTurn() {
+    whiteTurn = !whiteTurn
+    if (whiteTurn) {
+      document.getElementById("playerText").innerHTML = "White's Turn"
+    } else {
+      document.getElementById("playerText").innerHTML = "Black's Turn"
+    }  
+  }
+
+  function checkText(set) {
+    if (set) {
+      document.getElementById("playerText").innerHTML = document.getElementById("playerText").innerHTML + "        You are in CHECK"
+    } else {
+      document.getElementById("playerText").innerHTML = document.getElementById("playerText").innerHTML + ""
+    }
+  }
+
+  function movePiece(newPieceID, oldPieceID) {
+    const newPiece = document.getElementById(newPieceID)
+    const oldPiece = document.getElementById(oldPieceID)
+    newPiece.setAttribute("name", oldPiece.getAttribute("name"))
+    newPiece.innerHTML = oldPiece.innerHTML
+    oldPiece.innerHTML = " "
+    oldPiece.setAttribute("name", "empty")
+  }
+
   function handleResponse(response, mode, clickedButton) {
     if (mode == "opt") {
       console.log("Operating mode: opt");
@@ -44,18 +70,21 @@ $(document).ready(function () {
       console.log("Operating mode: mov");
       console.log("Reponse from server:", response, "length:", response.length);
       var result = response.split(":")[1]
-      if (result === "true") {
+      if (result.substring(0, 4) === "true") {
         clearDisplayedMoves()
-        const newPiece = document.getElementById(clickedButton.prop("id"))
-        const oldPiece = document.getElementById(moveDisplayedPiece)
-        newPiece.setAttribute("name", oldPiece.getAttribute("name"))
-        newPiece.innerHTML = oldPiece.innerHTML
-        oldPiece.innerHTML = " "
-        oldPiece.setAttribute("name", "empty")
-        whiteTurn = !whiteTurn
-      } else if (result === "false") {
+        movePiece(clickedButton.prop("id"), moveDisplayedPiece)
+        swapTurn()
+      } else if (result.substring(0, 6) === "castle") {
+        console.log("THIS IS THE ROOK:", result.substring(6, 8), result.substring(8, 10))
+        clearDisplayedMoves()
+        movePiece(clickedButton.prop("id"), moveDisplayedPiece)
+        movePiece(result.substring(8, 10), result.substring(6, 8))
+        swapTurn()
+      } else if (result.substring(0, 5) === "false") {
         console.log("THAT WAS AN INVALID MOVE")
-      }
+      } 
+      console.log("CHECK TEXT: ", result.substring(result.length - 5, result.length), result.substring(result.length - 5, result.length) === "check")
+      checkText(result.substring(result.length - 5, result.length) === "check")
     }
   }
 

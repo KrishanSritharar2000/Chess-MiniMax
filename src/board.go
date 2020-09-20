@@ -344,13 +344,15 @@ func (p Piece) generatePossibleMoves(b *Board) []Position {
 		if !p.IsBlack {
 			if p.y-1 >= 0 && !b.isEmpty(p.x+1, p.y-1) && b.Board[p.x+1][p.y-1].IsBlack {
 				allowedMoves = append(allowedMoves, Position{p.x + 1, p.y - 1})
-			} else if p.y+1 <= 7 && !b.isEmpty(p.x+1, p.y+1) && b.Board[p.x+1][p.y+1].IsBlack {
+			} 
+			if p.y+1 <= 7 && !b.isEmpty(p.x+1, p.y+1) && b.Board[p.x+1][p.y+1].IsBlack {
 				allowedMoves = append(allowedMoves, Position{p.x + 1, p.y + 1})
 			}
 		} else {
 			if p.y-1 >= 0 && !b.isEmpty(p.x-1, p.y-1) && !b.Board[p.x-1][p.y-1].IsBlack {
 				allowedMoves = append(allowedMoves, Position{p.x - 1, p.y - 1})
-			} else if p.y+1 <= 7 && !b.isEmpty(p.x-1, p.y+1) && !b.Board[p.x-1][p.y+1].IsBlack {
+			} 
+			if p.y+1 <= 7 && !b.isEmpty(p.x-1, p.y+1) && !b.Board[p.x-1][p.y+1].IsBlack {
 				allowedMoves = append(allowedMoves, Position{p.x - 1, p.y + 1})
 			}
 		}

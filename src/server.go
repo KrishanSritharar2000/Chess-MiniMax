@@ -92,7 +92,36 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 			destX, destY := int(rest[2])-int('0'), int(rest[3])-int('0')
 			fmt.Println("Move the piece at:", startX, startY, game.Board.Board[startX][startY], "to:", destX, destY, game.Board.Board[destX][destY])
 			result := game.makeMove(startX, startY, destX, destY)
-			fmt.Fprintf(w, "Result:" + strconv.FormatBool(result))
+			var kingInCheck bool
+			if game.IsWhiteTurn {
+				kingInCheck = game.Board.kingW.isCheck(&game.Board)
+			} else {
+				kingInCheck = game.Board.kingB.isCheck(&game.Board)
+			}
+			checkText := ""
+			if result && kingInCheck {
+				checkText = "check"
+			}
+			if result && game.Board.Board[destX][destY].Symbol == "K" && abs(startY - destY) == 2 {
+				var rookLocation string
+				if game.Board.Board[destX][destY].IsBlack {
+					if destY == 6 {
+						rookLocation = "7775"
+					} else if destY == 2 {
+						rookLocation = "7073"
+					}
+				} else {
+					if destY == 6 {
+						rookLocation = "0705"
+					} else if destY == 2 {
+						rookLocation = "0003"
+					}
+				}
+				fmt.Fprintf(w, "Result:" + "castle" + rookLocation + checkText)
+			} else {
+				fmt.Println("Result:" + strconv.FormatBool(result) + checkText)
+				fmt.Fprintf(w, "Result:" + strconv.FormatBool(result) + checkText)
+			}
 		default:
 			log.Print("HTTP Request Error")
 		}
@@ -100,6 +129,13 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 		// respond to client's request
 		// fmt.Fprintf(w, "Server: %s \n", message+" | "+time.Now().Format(time.RFC3339))
 	}
+}
+
+func abs(x int) int {
+	if x >= 0 {
+		return x
+	}
+	return -x
 }
 
 func getString(slice []Position) string {
