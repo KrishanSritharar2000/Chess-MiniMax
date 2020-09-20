@@ -65,7 +65,9 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 		if len(message) == 0 {
 			message = r.FormValue("black")
 		}
-
+		if len(message) == 0 {
+			message = r.FormValue("empty")
+		}
 		fmt.Println("----------------------------------")
 		fmt.Println("Message from Client:", message)
 
