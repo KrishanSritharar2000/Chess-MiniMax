@@ -29,7 +29,7 @@ func isNumber(s string) bool {
 	return s == "1" || s == "2" || s == "3" || s == "4" || s == "5" || s == "6" || s == "7" || s == "8"
 }
 
-func (g *Game) getTurn(r bufio.Reader) (string, string) {
+func (g *Game) getTurn(r bufio.Reader) (int, int, int, int) {
 	var isCheck bool
 	if g.IsWhiteTurn {
 		fmt.Println("White's Turn")
@@ -62,16 +62,16 @@ func (g *Game) getTurn(r bufio.Reader) (string, string) {
 		fmt.Println("\nThat is an invalid move")
 		fmt.Println("Please use the format: [LetterNumber LetterNumber]")
 		fmt.Println("To provide the coordinates [A-G 1-8] of the chosen piece, and where to move it")
-	}
-	return string(str), string(dst)
+	}	
+	
+	startY := int(str[0]) - int('a')
+	startX := int(str[1]) - int('1')
+	endY := int(dst[0]) - int('a')
+	endX := int(dst[1]) - int('1')
+	return startX, startY, endX, endY
 }
 
-func (g *Game) makeMove(start, end string) bool {
-	var startX, startY, endX, endY int
-	startY = int(start[0]) - int('a')
-	startX = int(start[1]) - int('1')
-	endY = int(end[0]) - int('a')
-	endX = int(end[1]) - int('1')
+func (g *Game) makeMove(startX, startY, endX, endY int) bool {
 
 	piece := g.Board.Board[startX][startY]	
 	if piece.Symbol == " " {
@@ -98,8 +98,7 @@ func StartGame() {
 	fmt.Println(g.Board)
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		startPos, endPos := g.getTurn(*reader)
-		g.makeMove(startPos, endPos)
+		g.makeMove(g.getTurn(*reader))
 		fmt.Println(g.Board)
 	}
 	// g.testBoard()

@@ -238,6 +238,8 @@ func resetBoard(b *Board, p, currentPiece, replacingPiece Piece, newX, newY int)
 	b.Board[newX][newY] = replacingPiece
 }
 
+
+
 //Pre: newX and newY are in Board boundaries
 //Post: Declaration of allowed move
 func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
@@ -291,6 +293,26 @@ func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
 
 	//if in check, check if moving piece fixes check
 
+	allowedMoves := p.generatePossibleMoves(b)
+	// fmt.Println("XY", p.x, p.y, newX, newY)
+	// fmt.Println("WhiteKing", b.kingW, "BlackKing", b.kingB)
+
+	// fmt.Println("moves", allowedMoves)
+	// if len(allowedMoves) > 0 {
+	// 	fmt.Println("moves First item", allowedMoves[0].x)
+	// }
+	// fmt.Println("Is black king currently in check: ", b.kingB.isCheck(b))
+	// fmt.Println("Is white king currently in check: ", b.kingW.isCheck(b))
+	for _, val := range allowedMoves {
+		if val.x == newX && val.y == newY {
+			return true
+		}
+	}
+	fmt.Println("That is an invalid move")
+	return false
+}
+
+func (p Piece) generatePossibleMoves(b *Board) []Position {
 	allowedMoves := make([]Position, 0)
 	// fmt.Println("XY", p.x, p.y, newX, newY)
 	// fmt.Println("WhiteKing", b.kingW, "BlackKing", b.kingB)
@@ -521,19 +543,7 @@ func (p Piece) checkAllowedMoves(b *Board, newX, newY int) bool {
 		//add castling by checking if king and rooks on starting square and not checks on square in between
 
 	}
-	// fmt.Println("moves", allowedMoves)
-	// if len(allowedMoves) > 0 {
-	// 	fmt.Println("moves First item", allowedMoves[0].x)
-	// }
-	// fmt.Println("Is black king currently in check: ", b.kingB.isCheck(b))
-	// fmt.Println("Is white king currently in check: ", b.kingW.isCheck(b))
-	for _, val := range allowedMoves {
-		if val.x == newX && val.y == newY {
-			return true
-		}
-	}
-	fmt.Println("That is an invalid move")
-	return false
+	return allowedMoves
 }
 
 func (p Piece) move(b *Board, newX, newY int) bool {

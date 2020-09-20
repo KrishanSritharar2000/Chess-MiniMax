@@ -18,16 +18,21 @@
     <div class="chess-grid">
       {{$colourLight := true}}
       {{$order := 57}}
+      {{$row := 0}}
       {{range $board:=.Game.Board.Board}}
+        {{$col := 0}}
         {{range $board}}
     <button style="order:{{$order}};"
+                  id={{$row}}{{$col}}
                   {{if $colourLight}} class="light" {{else}} class="dark" {{end}} 
-                  value={{.Symbol}} 
+                  value={{$row}}{{$col}} 
                   {{if (eq .Symbol " ")}} name="empty" {{else if .IsBlack}} name="black" {{else}} name="white" {{end}}>
                   {{.Symbol}}</button>
+          {{$col = add $col 1}}
           {{$order = add $order 1}}
           {{$colourLight = not $colourLight}}
         {{end}}
+        {{$row = add $row 1}}
         {{$order = minus $order 16}}
         {{$colourLight = not $colourLight}}
       {{end}}
