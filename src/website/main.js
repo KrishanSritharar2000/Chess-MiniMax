@@ -38,10 +38,34 @@ $(document).ready(function () {
 
       movesDisplayed = true;
       moveDisplayedPiece = clickedButton.prop("id");
+
     } else if (mode == "mov") {
       console.log("Operating mode: mov");
       console.log("Reponse from server:", response, "length:", response.length);
+      var result = response.split(":")[1]
+      if (result === "true") {
+        clearDisplayedMoves()
+        const newPiece = document.getElementById(clickedButton.prop("id"))
+        const oldPiece = document.getElementById(moveDisplayedPiece)
+        newPiece.setAttribute("name", oldPiece.getAttribute("name"))
+        newPiece.innerHTML = oldPiece.innerHTML
+        oldPiece.innerHTML = " "
+        oldPiece.setAttribute("name", "empty")
+        whiteTurn = !whiteTurn
+      } else if (result === "false") {
+        console.log("THAT WAS AN INVALID MOVE")
+      }
     }
+  }
+
+  function clearDisplayedMoves() {
+    for (let i = 0; i < htmlChangedPiece.length; i++) {
+      const htmlPiece = document.getElementById(htmlChangedPiece[i]);
+      htmlPiece.innerHTML = htmlChangedPieceOrigText[i];
+    }
+    htmlChangedPiece = [];
+    htmlChangedPieceOrigText = [];
+    movesDisplayed = false;
   }
 
   $(".light, .dark").click(function () {
@@ -63,13 +87,7 @@ $(document).ready(function () {
       } else {
         //Clear displayed moves
         console.log("These are the changed pieces", htmlChangedPiece);
-        for (let i = 0; i < htmlChangedPiece.length; i++) {
-          const htmlPiece = document.getElementById(htmlChangedPiece[i]);
-          htmlPiece.innerHTML = htmlChangedPieceOrigText[i];
-        }
-        htmlChangedPiece = [];
-        htmlChangedPieceOrigText = [];
-        movesDisplayed = false;
+        clearDisplayedMoves()
         if ($(this).prop("id") == moveDisplayedPiece) {
           return;
         }

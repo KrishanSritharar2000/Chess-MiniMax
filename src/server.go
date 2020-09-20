@@ -89,7 +89,8 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 			startX, startY := int(rest[0])-int('0'), int(rest[1])-int('0')
 			destX, destY := int(rest[2])-int('0'), int(rest[3])-int('0')
 			fmt.Println("Move the piece at:", startX, startY, game.Board.Board[startX][startY], "to:", destX, destY, game.Board.Board[destX][destY])
-			fmt.Fprintf(w, "Moved " + strconv.Itoa(startX) + strconv.Itoa(startY) + "to" + strconv.Itoa(destX) + strconv.Itoa(destY))
+			result := game.makeMove(startX, startY, destX, destY)
+			fmt.Fprintf(w, "Result:" + strconv.FormatBool(result))
 		default:
 			log.Print("HTTP Request Error")
 		}
