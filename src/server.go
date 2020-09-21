@@ -91,6 +91,7 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 		case "mov":
 			startX, startY := int(rest[0])-int('0'), int(rest[1])-int('0')
 			destX, destY := int(rest[2])-int('0'), int(rest[3])-int('0')
+			enPassantCheckPiece := game.Board.Board[destX][destY].Symbol
 			fmt.Println("Move the piece at:", startX, startY, game.Board.Board[startX][startY], "to:", destX, destY, game.Board.Board[destX][destY])
 			result := game.makeMove(startX, startY, destX, destY)
 			var kingInCheck, kingInCheckMate bool
@@ -106,15 +107,19 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 					kingInCheckMate = game.Board.kingB.isCheckMate(&game.Board)
 				}
 			}
-			checkText := ""
 
+
+			checkText := ""
 			fmt.Println("Checkmate:", kingInCheckMate)
 			if result && kingInCheckMate {
 				checkText = "mate"
 			} else if result && kingInCheck {
 				checkText = "check"
 			}
-			if result && game.Board.Board[destX][destY].Symbol == "K" && abs(startY - destY) == 2 {
+			//check for en passant
+			if result && game.Board.Board[destX][destY].Symbol == "P" && abs(startY - destY) == 1 && enPassantCheckPiece == " " {
+				fmt.Fprintf(w, "Result:" + "enpassant" + strconv.Itoa(startX) + strconv.Itoa(destY) + checkText)
+			} else if result && game.Board.Board[destX][destY].Symbol == "K" && abs(startY - destY) == 2 {
 				var rookLocation string
 				if game.Board.Board[destX][destY].IsBlack {
 					if destY == 6 {

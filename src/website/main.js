@@ -32,20 +32,6 @@ $(document).ready(function () {
     );
   }
 
-  $("#return").click(function () {
-    location.reload();
-    // var myForm = document.createElement("FORM");
-    // myForm.setAttribute("action", "//#endregion");
-    // myForm.setAttribute("method", "GET");
-
-    // var input = document.createElement("INPUT");
-    // input.setAttribute("type", "text");
-    // input.setAttribute("value", $(this).val());
-    // myForm.appendChild(input);
-    // $(document.body).append(myForm);
-    // $(myForm).submit();
-  });
-
   function swapTurn() {
     whiteTurn = !whiteTurn;
     if (whiteTurn) {
@@ -75,7 +61,7 @@ $(document).ready(function () {
       document.getElementById("playerText").innerHTML =
         document.getElementById("playerText").innerHTML + "";
     }
-    return set
+    return set;
   }
 
   function setImage(object, url) {
@@ -172,14 +158,27 @@ $(document).ready(function () {
         swapTurn();
       } else if (result.substring(0, 5) === "false") {
         console.log("THAT WAS AN INVALID MOVE");
+      } else if (result.substring(0, 9) === "enpassant") {
+        clearDisplayedMoves();
+        movePiece(clickedButton.prop("id"), moveDisplayedPiece);
+        const pawnPiece = document.getElementById(result.substring(9, 11));
+        pawnPiece.setAttribute("name", "empty");
+        pawnPiece.setAttribute("value", " ");
+        setImage(
+            pawnPiece,
+            "url('/static/imgs/" + pawnPiece.getAttribute("class") + ".png')"
+          );
+        swapTurn();
       }
       console.log(
         "CHECK TEXT: ",
         result.substring(result.length - 5, result.length),
         result.substring(result.length - 5, result.length) === "check"
       );
-      if (mateText(result.substring(result.length - 4, result.length) === "mate")) {
-        return
+      if (
+        mateText(result.substring(result.length - 4, result.length) === "mate")
+      ) {
+        return;
       }
       checkText(result.substring(result.length - 5, result.length) === "check");
     }
@@ -194,6 +193,10 @@ $(document).ready(function () {
     htmlChangedPieceOrigImage = [];
     movesDisplayed = false;
   }
+
+  $("#return").click(function () {
+    location.reload();
+  });
 
   $(".light, .dark").click(function () {
     var myForm = document.createElement("FORM");

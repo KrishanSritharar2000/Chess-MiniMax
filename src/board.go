@@ -637,6 +637,13 @@ func (p Piece) move(b *Board, newX, newY int) bool {
 			} else if !p.IsBlack && p.x == 1 && newX == 3 {
 				b.lastPawnMoveW = Position{newX, newY}
 			}
+
+			//en Passant move occurs
+			//Remove the cut pawn
+			if abs(p.y - newY) == 1 && b.Board[newX][newY].Symbol == " " {
+				b.Board[p.x][newY] = Piece{p.x, newY, " ", false}
+			}
+
 		} else if p.IsBlack {
 			b.lastPawnMoveB = Position{-2, -2}
 		} else {
