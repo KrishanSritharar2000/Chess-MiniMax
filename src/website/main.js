@@ -7,6 +7,28 @@ $(document).ready(function () {
   var htmlChangedPieceOrigText = [];
   var whiteTurn = true;
 
+  // const whitePieces = document.getElementsByName("white")
+  document.getElementById("04").style.backgroundImage = "url('/static/whitekinglight.png')"
+  document.getElementById("04").style.backgroundSize = "100px 100px"
+  document.getElementById("04").style.backgroundPosition = "center"
+  document.getElementById("04").className = ""
+  document.getElementById("04").innerHTML = ""
+
+  document.getElementById("03").style.backgroundImage = "url('/static/whitequeenlight.png')"
+  document.getElementById("03").style.backgroundSize = "100px 100px"
+  document.getElementById("03").style.backgroundPosition = "center"
+  document.getElementById("03").className = ""
+  document.getElementById("03").innerHTML = ""
+
+  document.getElementById("74").style.backgroundImage = "url('/static/blackkingdark.png')"
+  document.getElementById("74").style.backgroundSize = "100px 100px"
+  document.getElementById("74").style.backgroundPosition = "center"
+  document.getElementById("74").className = ""
+  // const blackPicees = document.getElementsByName("black")
+  // for (let i = 0; i < whitePieces.length; i++) {
+  //   whitePiece.item(i).style.backgroundImage = "url(blackking.png)"
+  // }
+
   $("#return").click(function () {
     location.reload()
     // var myForm = document.createElement("FORM");
