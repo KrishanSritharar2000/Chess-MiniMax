@@ -93,14 +93,25 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 			destX, destY := int(rest[2])-int('0'), int(rest[3])-int('0')
 			fmt.Println("Move the piece at:", startX, startY, game.Board.Board[startX][startY], "to:", destX, destY, game.Board.Board[destX][destY])
 			result := game.makeMove(startX, startY, destX, destY)
-			var kingInCheck bool
+			var kingInCheck, kingInCheckMate bool
 			if game.IsWhiteTurn {
 				kingInCheck = game.Board.kingW.isCheck(&game.Board)
 			} else {
 				kingInCheck = game.Board.kingB.isCheck(&game.Board)
 			}
+			if kingInCheck {
+				if game.IsWhiteTurn {
+					kingInCheckMate = game.Board.kingW.isCheckMate(&game.Board)
+				} else {
+					kingInCheckMate = game.Board.kingB.isCheckMate(&game.Board)
+				}
+			}
 			checkText := ""
-			if result && kingInCheck {
+
+			fmt.Println("Checkmate:", kingInCheckMate)
+			if result && kingInCheckMate {
+				checkText = "mate"
+			} else if result && kingInCheck {
 				checkText = "check"
 			}
 			if result && game.Board.Board[destX][destY].Symbol == "K" && abs(startY - destY) == 2 {

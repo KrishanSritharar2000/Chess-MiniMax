@@ -25,12 +25,10 @@ body {
   background-color: rgba(240, 217, 181, 1);
 }
 
-.dark:hover {
-  background-color: rgba(181,136,99,0.93);
-}
-
-.light:hover{
-  background-color: rgba(240, 217, 181, 0.93);
+.dark:hover, .light:hover{
+  opacity: 0.8;
+  /* background-color: rgba(181,136,99,0.93); */
+  /* background-color: rgba(240, 217, 181, 0.93); */
 }
 
 .button {
