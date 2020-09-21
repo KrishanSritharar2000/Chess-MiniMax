@@ -43,8 +43,8 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
+		game = Game{Board{}, true}
 		SetupBoard(&game.Board)
-		game.IsWhiteTurn = true
 		tmpl, err := template.New("game.html").Funcs(template.FuncMap{
 			"minus": func(a, b int) int {
 				return a - b

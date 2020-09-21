@@ -645,17 +645,25 @@ func (p Piece) move(b *Board, newX, newY int) bool {
 		if p.Symbol == "K" {
 			if p.IsBlack && p.x == 7 && p.y == 4 {
 				if newY == 6 {
+					b.Board[7][7].x = 7
+					b.Board[7][7].y = 5 
 					b.Board[7][5] = b.Board[7][7]
 					b.Board[7][7] = Piece{7, 7, " ", true}
 				} else if newY == 2 {
+					b.Board[7][0].x = 7
+					b.Board[7][0].y = 3 
 					b.Board[7][3] = b.Board[7][0]
 					b.Board[7][0] = Piece{7, 0, " ", true}
 				}
 			} else if !p.IsBlack && p.x == 0 && p.y == 4 {
 				if newY == 6 {
+					b.Board[0][7].x = 0
+					b.Board[0][7].y = 5 
 					b.Board[0][5] = b.Board[0][7]
 					b.Board[0][7] = Piece{0, 7, " ", false}
 				} else if newY == 2 {
+					b.Board[0][0].x = 0
+					b.Board[0][0].y = 3 
 					b.Board[0][3] = b.Board[0][0]
 					b.Board[0][0] = Piece{0, 0, " ", false}
 				}
