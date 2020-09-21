@@ -4,30 +4,20 @@ $(document).ready(function () {
   var movesDisplayed = false;
   var moveDisplayedPiece = "00";
   var htmlChangedPiece = [];
-  var htmlChangedPieceOrigText = [];
+  var htmlChangedPieceOrigImage = [];
   var whiteTurn = true;
+  const piecePixel = "100px 100px"
 
-  // const whitePieces = document.getElementsByName("white")
-  document.getElementById("04").style.backgroundImage = "url('/static/whitekinglight.png')"
-  document.getElementById("04").style.backgroundSize = "100px 100px"
-  document.getElementById("04").style.backgroundPosition = "center"
-  document.getElementById("04").className = ""
-  document.getElementById("04").innerHTML = ""
+  const whitePieces = document.getElementsByName("white")
+  const blackPieces = document.getElementsByName("black")
+  for (let i = 0; i < whitePieces.length; i++) {    
+    setImage(whitePieces.item(i), "url('/static/imgs/" + whitePieces.item(i).value.toLowerCase() + "white" + whitePieces.item(i).getAttribute("class")[0] + ".png')")
+  }
 
-  document.getElementById("03").style.backgroundImage = "url('/static/whitequeenlight.png')"
-  document.getElementById("03").style.backgroundSize = "100px 100px"
-  document.getElementById("03").style.backgroundPosition = "center"
-  document.getElementById("03").className = ""
-  document.getElementById("03").innerHTML = ""
+  for (let i = 0; i < blackPieces.length; i++) {    
+    setImage(blackPieces.item(i), "url('static/imgs/" + blackPieces.item(i).value.toLowerCase() + "black" + blackPieces.item(i).getAttribute("class")[0] + ".png')")
+  }
 
-  document.getElementById("74").style.backgroundImage = "url('/static/blackkingdark.png')"
-  document.getElementById("74").style.backgroundSize = "100px 100px"
-  document.getElementById("74").style.backgroundPosition = "center"
-  document.getElementById("74").className = ""
-  // const blackPicees = document.getElementsByName("black")
-  // for (let i = 0; i < whitePieces.length; i++) {
-  //   whitePiece.item(i).style.backgroundImage = "url(blackking.png)"
-  // }
 
   $("#return").click(function () {
     location.reload()
@@ -60,13 +50,22 @@ $(document).ready(function () {
     }
   }
 
+  function setImage(object, url) {
+    object.style.backgroundImage = url
+    object.style.backgroundSize = piecePixel
+    object.style.backgroundPosition = "center"
+  }
+
   function movePiece(newPieceID, oldPieceID) {
     const newPiece = document.getElementById(newPieceID)
     const oldPiece = document.getElementById(oldPieceID)
     newPiece.setAttribute("name", oldPiece.getAttribute("name"))
-    newPiece.innerHTML = oldPiece.innerHTML
-    oldPiece.innerHTML = " "
+    newPiece.setAttribute("value", oldPiece.getAttribute("value"))
+    setImage(newPiece, "url('/static/imgs/" + newPiece.value.toLowerCase() + newPiece.getAttribute("name") + newPiece.getAttribute("class")[0] + ".png')")
+
     oldPiece.setAttribute("name", "empty")
+    oldPiece.setAttribute("value", " ")
+    setImage(oldPiece, "url('/static/imgs/" + oldPiece.getAttribute("class") + ".png')")
   }
 
   function handleResponse(response, mode, clickedButton) {
@@ -78,11 +77,17 @@ $(document).ready(function () {
         console.log(
           "Pushed to array ",
           response.substring(i, i + 2),
-          htmlPiece.innerHTML
+          htmlPiece.style.backgroundImage
         );
         htmlChangedPiece.push(response.substring(i, i + 2));
-        htmlChangedPieceOrigText.push(htmlPiece.innerHTML);
-        htmlPiece.innerHTML = "TAKE " + htmlPiece.innerHTML;
+        htmlChangedPieceOrigImage.push(htmlPiece.style.backgroundImage);
+        console.log("THIS IS THE NEW IMAGE PATH:", htmlPiece.style.backgroundImage)
+        if (htmlPiece.getAttribute("value") == " ") {
+          setImage(htmlPiece, "url('/static/imgs/" + htmlPiece.getAttribute("class") + "s.png')")
+        } else {
+          console.log("THIS IS THE SUBSTRING:", htmlPiece.style.backgroundImage.substring(0, htmlPiece.style.backgroundImage.length-6) + "s" + ".png\")")
+          setImage(htmlPiece, htmlPiece.style.backgroundImage.substring(0, htmlPiece.style.backgroundImage.length-6) + "s" + ".png\")")
+        }
       }
 
       movesDisplayed = true;
@@ -113,10 +118,10 @@ $(document).ready(function () {
   function clearDisplayedMoves() {
     for (let i = 0; i < htmlChangedPiece.length; i++) {
       const htmlPiece = document.getElementById(htmlChangedPiece[i]);
-      htmlPiece.innerHTML = htmlChangedPieceOrigText[i];
+      htmlPiece.style.backgroundImage = htmlChangedPieceOrigImage[i];
     }
     htmlChangedPiece = [];
-    htmlChangedPieceOrigText = [];
+    htmlChangedPieceOrigImage = [];
     movesDisplayed = false;
   }
 
@@ -134,7 +139,7 @@ $(document).ready(function () {
         console.log("Sending move request!!")
         //move the piece there
         var mode = "mov"
-        input.setAttribute("value", mode + " " + moveDisplayedPiece + $(this).val());
+        input.setAttribute("value", mode + " " + moveDisplayedPiece + $(this).prop("id"));
 
       } else {
         //Clear displayed moves
@@ -159,7 +164,7 @@ $(document).ready(function () {
       }
       // input.setAttribute("value", $(this).prop("name") + " " + $(this).val() + " piece selected");
       var mode = "opt"
-      input.setAttribute("value", mode + " " + $(this).val());
+      input.setAttribute("value", mode + " " + $(this).prop("id"));
     }
     myForm.appendChild(input);
 
@@ -173,7 +178,7 @@ $(document).ready(function () {
   });
 
   $("button").click(function () {
-    console.log("Value is: ", $(this).val());
+    console.log("Value is: ", $(this).prop("id"));
     console.log("Name is: ", $(this).prop("name"));
     console.log("Class is: ", $(this).prop("class"));
     console.log("Button Text is: ", $(this).text(), $(this).text().length);

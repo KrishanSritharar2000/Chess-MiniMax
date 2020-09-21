@@ -24,9 +24,9 @@
     <button style="order:{{$order}};"
                   id={{$row}}{{$col}}
                   {{if $colourLight}} class="light" {{else}} class="dark" {{end}} 
-                  value={{$row}}{{$col}} 
+                  value={{.Symbol}}
                   {{if (eq .Symbol " ")}} name="empty" {{else if .IsBlack}} name="black" {{else}} name="white" {{end}}>
-                  {{.Symbol}}</button>
+                  </button>
           {{$col = add $col 1}}
           {{$order = add $order 1}}
           {{$colourLight = not $colourLight}}
