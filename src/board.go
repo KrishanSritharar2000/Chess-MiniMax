@@ -327,9 +327,9 @@ func (p Piece) generatePossibleMoves(b *Board) []Position {
 	switch p.Symbol {
 	case "P":
 		// If pawn in start position advance 2
-		if p.x == 1 && !p.IsBlack && b.isEmpty(p.x+2, p.y) {
+		if p.x == 1 && !p.IsBlack && b.isEmpty(p.x+2, p.y) && b.isEmpty(p.x+1, p.y) {
 			allowedMoves = append(allowedMoves, Position{p.x + 2, p.y})
-		} else if p.x == 6 && p.IsBlack && b.isEmpty(p.x-2, p.y) {
+		} else if p.x == 6 && p.IsBlack && b.isEmpty(p.x-2, p.y) && b.isEmpty(p.x-1, p.y) {
 			allowedMoves = append(allowedMoves, Position{p.x - 2, p.y})
 		}
 
