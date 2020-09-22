@@ -22,6 +22,7 @@ type Board struct {
 	whiteCheck, blackCheck       bool
 	lastPawnMoveW, lastPawnMoveB Position //used for en passant
 	castleCheck                  [6]bool  //WhiteKing, BlackKing, WhiteRookLeft, WhiteRookRight, BlackRookLeft, BlackRookRight
+	promotePawn					 bool
 }
 
 type Piece struct {
@@ -642,6 +643,10 @@ func (p Piece) move(b *Board, newX, newY int) bool {
 			//Remove the cut pawn
 			if abs(p.y - newY) == 1 && b.Board[newX][newY].Symbol == " " {
 				b.Board[p.x][newY] = Piece{p.x, newY, " ", false}
+			}
+
+			if (p.IsBlack && newX == 0) || (!p.IsBlack && newX == 7) {
+				b.promotePawn = true
 			}
 
 		} else if p.IsBlack {

@@ -43,3 +43,13 @@ body {
   transition-duration: 0.4s;
   cursor: pointer;
 }
+
+.col {
+  height: 150px; 
+  width: 150px;
+  background-size: 150px 150px; 
+  background-position: center;
+  display:inline-block;
+  margin-right:0.75rem;
+
+}
