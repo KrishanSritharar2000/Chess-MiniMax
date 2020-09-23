@@ -12,23 +12,42 @@ import (
 )
 
 var (
-	game = Game{Board{}, true}
+	game *Game
+	username string
+	users = make(map[string]*Game)
 )
 
 //get rid of this
 type WebpageData struct {
 	Game   *Game
 	Player string
-	IP string
+}
+
+func GetGame(r *http.Request) {
+	ip := r.RemoteAddr
+	if string(ip[0]) == "[" {
+		//parse localHost IP
+		ip = ip[:5]//since localhost is like [::1]:PORT
+	} else {
+		ip = strings.Split(ip, ":")[0]//Splits IPv4 address and port into just address
+	}
+	if g, ok := users[ip]; ok {
+		game = g
+	} else {
+		users[ip] = &Game{Board{}, true}
+		game = users[ip]
+		SetupBoard(&game.Board)
+	}
+	username = ip
 }
 
 func HomePage(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("IP:",GetIP(r), r.RemoteAddr)
+	GetGame(r)
 	if r.Method != "GET" {
 		log.Print("Not GET request recieved on Home Page")
 		return
 	}
-	vars := WebpageData{&game, "Krishan", GetIP(r)}
+	vars := WebpageData{game, username}
 	t, err := template.ParseFiles("website/index.html")
 	if err != nil {
 		log.Print("Error parsing template: ", err)
@@ -45,11 +64,13 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 // "pwn 00q" to promote pawn at 00 to a queen
 // "rst " to restart the game
 func GamePage(w http.ResponseWriter, r *http.Request) {
-
+	GetGame(r)
+	fmt.Println("IP:", r.RemoteAddr)
+	fmt.Println(users)
 	switch r.Method {
 	case "GET":
-		game = Game{Board{}, true}
-		SetupBoard(&game.Board)
+		// game = Game{Board{}, true}
+		// SetupBoard(&game.Board)
 		tmpl, err := template.New("game.html").Funcs(template.FuncMap{
 			"minus": func(a, b int) int {
 				return a - b
@@ -62,7 +83,7 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Print("Error parsing template: ", err)
 		}
-		err = tmpl.Execute(w, WebpageData{&game, "Start Game", GetIP(r)})
+		err = tmpl.Execute(w, WebpageData{game, username})
 		if err != nil {
 			log.Print("Error during executing: ", err)
 		}
@@ -138,6 +159,12 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 			result := game.Board.Board[x][y].promotePawn(&game.Board, string(rest[2]))
 			checkText := getCheckMessage(result) 
 			fmt.Fprintf(w, strconv.FormatBool(result) + checkText)
+		
+		case "rst":
+			SetupBoard(&game.Board)
+			fmt.Fprintf(w, "reload")
+		case "ply":
+			fmt.Fprintf(w, strconv.FormatBool(game.IsWhiteTurn))
 		default:
 			log.Print("HTTP Request Error")
 		}
@@ -172,23 +199,6 @@ func getCheckMessage(result bool) string{
 	return checkText
 }
 
-// GetIP gets a requests IP address by reading off the forwarded-for
-// header (for proxies) and falls back to use the remote address.
-func GetIP(r *http.Request) string {
-	// forwarded := r.Header.Get("X-FORWARDED-FOR")
-	// if forwarded != "" {
-	// 	return forwarded
-	// }
-	// return r.RemoteAddr
-	IPAddress := r.Header.Get("X-Real-Ip")
-    if IPAddress == "" {
-        IPAddress = r.Header.Get("X-Forwarded-For")
-    }
-    if IPAddress == "" {
-        IPAddress = r.RemoteAddr
-    }
-    return IPAddress
-}
 
 func abs(x int) int {
 	if x >= 0 {
@@ -216,7 +226,7 @@ func GamePageSelected(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Print("Error parsing template: ", err)
 	}
-	err = t.Execute(w, WebpageData{&game, "Returned form Selected", GetIP(r)})
+	err = t.Execute(w, WebpageData{game, username})
 	if err != nil {
 		log.Print("Error during executing: ", err)
 	}

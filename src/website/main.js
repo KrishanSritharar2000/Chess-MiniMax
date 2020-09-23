@@ -5,7 +5,8 @@ $(document).ready(function () {
   var moveDisplayedPiece = "00";
   var htmlChangedPiece = [];
   var htmlChangedPieceOrigImage = [];
-  var whiteTurn = true;
+  var whiteTurn = true
+  getCurrentPlayerTurn();
   var promotedPawnLocation = ""
   var promotedPawnColour = ""
   const piecePixel = "100px 100px";
@@ -36,11 +37,15 @@ $(document).ready(function () {
 
   function swapTurn() {
     whiteTurn = !whiteTurn;
+    setPlayerText()
+  }
+
+  function setPlayerText() {
     if (whiteTurn) {
-      document.getElementById("playerText").innerHTML = "White's Turn";
-    } else {
-      document.getElementById("playerText").innerHTML = "Black's Turn";
-    }
+        document.getElementById("playerText").innerHTML = "White's Turn";
+      } else {
+        document.getElementById("playerText").innerHTML = "Black's Turn";
+      }
   }
 
   function checkText(set) {
@@ -91,6 +96,16 @@ $(document).ready(function () {
     input.setAttribute("value", message);
     myForm.appendChild(input);
     return myForm
+  }
+
+  function getCurrentPlayerTurn() {
+    fetch("/game", {
+        method: "POST",
+        body: new FormData(getForm("ply ", "empty")),
+      })
+        .then((response) => response.text())
+        .then((data) => handleResponse(data, "ply", $(this)))
+        .catch((error) => console.error("Error encountered: ", error));
   }
 
   function movePiece(newPieceID, oldPieceID) {
@@ -229,6 +244,13 @@ $(document).ready(function () {
         } else {
             console.log("ERROR HAS OCCURED, PIECE CANNOT BE PROMOTED")
         }
+    } else if (mode == "rst") {
+        if (response.substring(0, 6) == "reload") {
+            location.reload()
+        }
+    } else if (mode == "ply") {
+        whiteTurn = (response === "true" ? true : false)
+        setPlayerText()
     }
   }
 
@@ -243,7 +265,13 @@ $(document).ready(function () {
   }
 
   $("#return").click(function () {
-    location.reload();
+    fetch("/game", {
+        method: "POST",
+        body: new FormData(getForm("rst ", "empty")),
+      })
+        .then((response) => response.text())
+        .then((data) => handleResponse(data, "rst", $(this)))
+        .catch((error) => console.error("Error encountered: ", error));
   });
 
   $(".piecePromobutton").click(function () {
