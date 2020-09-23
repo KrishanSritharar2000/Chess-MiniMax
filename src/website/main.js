@@ -6,6 +6,8 @@ $(document).ready(function () {
   var htmlChangedPiece = [];
   var htmlChangedPieceOrigImage = [];
   var whiteTurn = true;
+  var promotedPawnLocation = ""
+  var promotedPawnColour = ""
   const piecePixel = "100px 100px";
 
   const whitePieces = document.getElementsByName("white");
@@ -45,7 +47,7 @@ $(document).ready(function () {
     if (set) {
       document.getElementById("playerText").innerHTML =
         document.getElementById("playerText").innerHTML +
-        "        You are in CHECK";
+        " You are in CHECK";
     } else {
       document.getElementById("playerText").innerHTML =
         document.getElementById("playerText").innerHTML + "";
@@ -68,6 +70,16 @@ $(document).ready(function () {
     object.style.backgroundImage = url;
     object.style.backgroundSize = piecePixel;
     object.style.backgroundPosition = "center";
+  }
+
+  function setEmptyImage(id) {
+    const pawnPiece = document.getElementById(id);
+    pawnPiece.setAttribute("name", "empty");
+    pawnPiece.setAttribute("value", " ");
+    setImage(
+        pawnPiece,
+        "url('/static/imgs/" + pawnPiece.getAttribute("class") + ".png')"
+      );
   }
 
   function movePiece(newPieceID, oldPieceID) {
@@ -161,26 +173,51 @@ $(document).ready(function () {
       } else if (result.substring(0, 9) === "enpassant") {
         clearDisplayedMoves();
         movePiece(clickedButton.prop("id"), moveDisplayedPiece);
-        const pawnPiece = document.getElementById(result.substring(9, 11));
-        pawnPiece.setAttribute("name", "empty");
-        pawnPiece.setAttribute("value", " ");
-        setImage(
-            pawnPiece,
-            "url('/static/imgs/" + pawnPiece.getAttribute("class") + ".png')"
-          );
+        setEmptyImage(result.substring(9, 11))
         swapTurn();
+      } else if (result.substring(0, 3) == "pwn") {
+          promotedPawnLocation = clickedButton.prop("id")
+          promotedPawnColour = whiteTurn ? "white" : "black"
+          document.getElementById("qPromoteTo").style.backgroundImage = "url('/static/imgs/q" + promotedPawnColour + "l.png')"
+          document.getElementById("bPromoteTo").style.backgroundImage = "url('/static/imgs/b" + promotedPawnColour + "l.png')"
+          document.getElementById("hPromoteTo").style.backgroundImage = "url('/static/imgs/h" + promotedPawnColour + "l.png')"
+          document.getElementById("rPromoteTo").style.backgroundImage = "url('/static/imgs/r" + promotedPawnColour + "l.png')"
+          $("#piecePromoteModal").modal('show')
+          console.log("SHOWN MODAL")
       }
       console.log(
         "CHECK TEXT: ",
         result.substring(result.length - 5, result.length),
         result.substring(result.length - 5, result.length) === "check"
       );
-      if (
-        mateText(result.substring(result.length - 4, result.length) === "mate")
-      ) {
+      if (mateText(result.substring(result.length - 4, result.length) === "mate")) {
         return;
       }
       checkText(result.substring(result.length - 5, result.length) === "check");
+    } else if (mode == "pwn") {
+        if (response.substring(0, 4) == "true") {
+            clearDisplayedMoves();
+            console.log("Server: ", response, response.substring(response.length - 5, response.length))
+            const newPiece = document.getElementById(promotedPawnLocation);
+            newPiece.setAttribute("name", promotedPawnColour);
+            newPiece.setAttribute("value", clickedButton.prop("id")[0]);
+            setImage(
+              newPiece,
+              "url('/static/imgs/" +
+                newPiece.value.toLowerCase() +
+                newPiece.getAttribute("name") +
+                newPiece.getAttribute("class")[0] +
+                ".png')"
+            );
+            setEmptyImage(moveDisplayedPiece)
+            if (mateText(response.substring(response.length - 4, response.length) === "mate")) {
+                return;
+            }
+            swapTurn();
+            checkText(response.substring(response.length - 5, response.length) === "check");
+        } else {
+            console.log("ERROR HAS OCCURED, PIECE CANNOT BE PROMOTED")
+        }
     }
   }
 
@@ -196,6 +233,27 @@ $(document).ready(function () {
 
   $("#return").click(function () {
     location.reload();
+  });
+
+  $(".piecePromobutton").click(function () {
+    var myForm = document.createElement("FORM");
+    myForm.setAttribute("method", "POST");
+    console.log("CLicked on this piece:", $(this).prop("id")[0])
+    var input = document.createElement("INPUT");
+    input.setAttribute("type", "text");
+    input.setAttribute("name", "empty");
+    var mode = "pwn"
+    input.setAttribute("value", mode + " " + promotedPawnLocation + $(this).prop("id")[0]);
+    console.log(mode + " " + promotedPawnLocation + $(this).prop("id")[0])
+    console.log("PROMOTED THE PAWN AT", promotedPawnLocation, "TO A", $(this).prop("id")[0]);
+    myForm.appendChild(input);
+    fetch("/game", {
+        method: "POST",
+        body: new FormData(myForm),
+      })
+        .then((response) => response.text())
+        .then((data) => handleResponse(data, mode, $(this)))
+        .catch((error) => console.error("Error encountered: ", error));
   });
 
   $(".light, .dark").click(function () {
@@ -258,3 +316,4 @@ $(document).ready(function () {
     console.log("Button Text is: ", $(this).text(), $(this).text().length);
   });
 });
+

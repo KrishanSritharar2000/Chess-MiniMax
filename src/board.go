@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 const boardSize = 8
@@ -268,6 +269,15 @@ func resetBoard(b *Board, p, currentPiece, replacingPiece Piece, newX, newY int)
 	}
 	b.Board[p.x][p.y] = currentPiece
 	b.Board[newX][newY] = replacingPiece
+}
+
+//Promote a pawn to a new piece given by a character
+func (p Piece) promotePawn(b *Board, newPieceSymbol string) bool {
+	if (p.IsBlack && p.x == 0) || (!p.IsBlack && p.x == 7) {
+		b.Board[p.x][p.y] = Piece{p.x, p.y, strings.ToUpper(newPieceSymbol), p.IsBlack}
+		return true
+	}
+	return false
 }
 
 //Pre: newX and newY are in Board boundaries

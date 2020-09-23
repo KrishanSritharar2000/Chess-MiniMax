@@ -40,6 +40,7 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 // Message will be either:
 // "opt 00" for give move options for piece at (0,0)
 // "mov 00 01" for move piece at (0,0) to (0,1)
+// "pwn 00q" to promote pawn at 00 to a queen
 func GamePage(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
@@ -78,75 +79,94 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 		if splitIndex == -1 {
 			log.Print("Error in HTTP request:", message, len(message))
 		}
+		fmt.Println("message:", message, " splitIndex:", splitIndex)
 		rest := message[(splitIndex + 1):]
 		opcode := message[:splitIndex]
 
 		switch opcode {
-			case "opt":
-				x, y := int(rest[0])-int('0'), int(rest[1])-int('0')
-				fmt.Println("Give the move options for the piece at:", x, y, game.Board.Board[x][y])
-				possibleMoves := game.Board.Board[x][y].generatePossibleMoves(&game.Board)
-				possibleMoves = game.Board.Board[x][y].removeInvalidMoves(&game.Board, possibleMoves)
-				fmt.Println("These are the possible moves:\n", possibleMoves)
-				fmt.Fprintf(w, getString(possibleMoves))
-			case "mov":
-				startX, startY := int(rest[0])-int('0'), int(rest[1])-int('0')
-				destX, destY := int(rest[2])-int('0'), int(rest[3])-int('0')
-				enPassantCheckPiece := game.Board.Board[destX][destY].Symbol
-				fmt.Println("Move the piece at:", startX, startY, game.Board.Board[startX][startY], "to:", destX, destY, game.Board.Board[destX][destY])
-				result := game.makeMove(startX, startY, destX, destY)
-				var kingInCheck, kingInCheckMate bool
-				if game.IsWhiteTurn {
-					kingInCheck = game.Board.kingW.isCheck(&game.Board)
-				} else {
-					kingInCheck = game.Board.kingB.isCheck(&game.Board)
-				}
-				if kingInCheck {
-					if game.IsWhiteTurn {
-						kingInCheckMate = game.Board.kingW.isCheckMate(&game.Board)
-					} else {
-						kingInCheckMate = game.Board.kingB.isCheckMate(&game.Board)
-					}
-				}	
+		case "opt":
+			x, y := int(rest[0])-int('0'), int(rest[1])-int('0')
+			fmt.Println("Give the move options for the piece at:", x, y, game.Board.Board[x][y])
+			possibleMoves := game.Board.Board[x][y].generatePossibleMoves(&game.Board)
+			possibleMoves = game.Board.Board[x][y].removeInvalidMoves(&game.Board, possibleMoves)
+			fmt.Println("These are the possible moves:\n", possibleMoves)
+			fmt.Fprintf(w, getString(possibleMoves))
+		case "mov":
+			startX, startY := int(rest[0])-int('0'), int(rest[1])-int('0')
+			destX, destY := int(rest[2])-int('0'), int(rest[3])-int('0')
+			enPassantCheckPiece := game.Board.Board[destX][destY].Symbol
+			fmt.Println("Move the piece at:", startX, startY, game.Board.Board[startX][startY], "to:", destX, destY, game.Board.Board[destX][destY])
+			result := game.makeMove(startX, startY, destX, destY)
+			fmt.Println("Is there a pawn promotion: ", game.Board.promotePawn)
 
-
-				checkText := ""
-				fmt.Println("Checkmate:", kingInCheckMate)
-				if result && kingInCheckMate {
-					checkText = "mate"
-				} else if result && kingInCheck {
-					checkText = "check"
-				}
-				//check for en passant
-				if result && game.Board.Board[destX][destY].Symbol == "P" && abs(startY - destY) == 1 && enPassantCheckPiece == " " {
-					fmt.Fprintf(w, "Result:" + "enpassant" + strconv.Itoa(startX) + strconv.Itoa(destY) + checkText)
-				} else if result && game.Board.Board[destX][destY].Symbol == "K" && abs(startY - destY) == 2 {
-					var rookLocation string
-					if game.Board.Board[destX][destY].IsBlack {
-						if destY == 6 {
-							rookLocation = "7775"
-						} else if destY == 2 {
-							rookLocation = "7073"
-						}
-					} else {
-						if destY == 6 {
-							rookLocation = "0705"
-						} else if destY == 2 {
-							rookLocation = "0003"
-						}
+			checkText := getCheckMessage(result) 
+			//check for en passant
+			if result && game.Board.Board[destX][destY].Symbol == "P" && abs(startY-destY) == 1 && enPassantCheckPiece == " " {
+				fmt.Fprintf(w, "Result:"+"enpassant"+strconv.Itoa(startX)+strconv.Itoa(destY)+checkText)
+			} else if result && game.Board.Board[destX][destY].Symbol == "K" && abs(startY-destY) == 2 {
+				var rookLocation string
+				if game.Board.Board[destX][destY].IsBlack {
+					if destY == 6 {
+						rookLocation = "7775"
+					} else if destY == 2 {
+						rookLocation = "7073"
 					}
-					fmt.Fprintf(w, "Result:" + "castle" + rookLocation + checkText)
 				} else {
-					fmt.Println("Result:" + strconv.FormatBool(result) + checkText)
-					fmt.Fprintf(w, "Result:" + strconv.FormatBool(result) + checkText)
+					if destY == 6 {
+						rookLocation = "0705"
+					} else if destY == 2 {
+						rookLocation = "0003"
+					}
 				}
-			default:
-				log.Print("HTT``P Request Error")
+				fmt.Fprintf(w, "Result:" + "castle" + rookLocation + checkText)
+			} else if game.Board.promotePawn {
+				game.Board.promotePawn = false
+				fmt.Println("CHANGED PAWN PROMOTE BACK TO: ", game.Board.promotePawn)
+				fmt.Fprintf(w, "Result:" + "pwn" + checkText)
+
+			} else {
+				fmt.Println("Result:" + strconv.FormatBool(result) + checkText)
+				fmt.Fprintf(w, "Result:" + strconv.FormatBool(result) + checkText)
+			}
+
+		case "pwn":
+			x, y := int(rest[0])-int('0'), int(rest[1])-int('0')
+			fmt.Println("This is the string of the oanw to promote:", string(rest[2]))
+			result := game.Board.Board[x][y].promotePawn(&game.Board, string(rest[2]))
+			checkText := getCheckMessage(result) 
+			fmt.Fprintf(w, strconv.FormatBool(result) + checkText)
+		default:
+			log.Print("HTTP Request Error")
 		}
 
 		// respond to client's request
 		// fmt.Fprintf(w, "Server: %s \n", message+" | "+time.Now().Format(time.RFC3339))
 	}
+}
+
+func getCheckMessage(result bool) string{
+	var kingInCheck, kingInCheckMate bool
+	if game.IsWhiteTurn {
+		kingInCheck = game.Board.kingW.isCheck(&game.Board)
+	} else {
+		kingInCheck = game.Board.kingB.isCheck(&game.Board)
+	}
+	if kingInCheck {
+		if game.IsWhiteTurn {
+			kingInCheckMate = game.Board.kingW.isCheckMate(&game.Board)
+		} else {
+			kingInCheckMate = game.Board.kingB.isCheckMate(&game.Board)
+		}
+	}
+
+	checkText := ""
+	fmt.Println("Checkmate:", kingInCheckMate)
+	if result && kingInCheckMate {
+		checkText = "mate"
+	} else if result && kingInCheck {
+		checkText = "check"
+	}
+	return checkText
 }
 
 func abs(x int) int {

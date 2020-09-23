@@ -25,10 +25,8 @@ body {
   background-color: rgba(240, 217, 181, 1);
 }
 
-.dark:hover, .light:hover{
-  opacity: 0.8;
-  /* background-color: rgba(181,136,99,0.93); */
-  /* background-color: rgba(240, 217, 181, 0.93); */
+.dark:hover, .light:hover, .piecePromobutton:hover {
+  opacity: 0.8 !important;
 }
 
 .button {
@@ -44,12 +42,12 @@ body {
   cursor: pointer;
 }
 
-.col {
+.piecePromobutton {
   height: 150px; 
   width: 150px;
   background-size: 150px 150px; 
   background-position: center;
   display:inline-block;
-  margin-right:0.75rem;
+  margin-right:0.25rem;
 
 }

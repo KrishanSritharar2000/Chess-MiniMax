@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chess</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <link href="/static/styles.css" rel="stylesheet" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="/static/main.js" defer></script>
@@ -11,11 +12,42 @@
   <body>
     <h2 id="playerText">White's Turn</h2>
     <form action="/" method="GET">
-      <input type="submit" value="Back" />
+      <button class="btn btn-primary btn-rounded waves-effect" type="submit" value="Back" />Back</button>
+      <button class="btn btn-primary btn-rounded waves-effect" id="return" value="DidThisWork" type="button" name="testButton">Restart</button>
+      <!-- <button class="btn btn-primary btn-rounded waves-effect" type="button" data-toggle="modal" data-target="#piecePromoteModal">Toggle Piece Promotion</button> -->
     </form>
-    <button id="return" value="DidThisWork" type="button" name="testButton">Restart</button>
+
+
+    <div class="modal fade" id="piecePromoteModal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="piecePromote" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 style="width: 100%; text-align: center;" class="modal-title" id="piecePromote">Promote your Pawn</h5>
+          </div>
+          <div class="modal-body">
+            <div class="container">
+              <div class="row">
+                <div class="col">
+                  <button id="qPromoteTo" data-dismiss="modal" style="background-image: url('/static/imgs/qwhitel.png');" type="button" class="btn btn-primary piecePromobutton"></button>
+                </div>
+                <div class="col">
+                  <button id="bPromoteTo" data-dismiss="modal" style="background-image: url('/static/imgs/bwhitel.png');" type="button" class="btn btn-primary piecePromobutton"></button>
+                </div>
+                <div class="col">
+                  <button id="hPromoteTo" data-dismiss="modal" style="background-image: url('/static/imgs/hwhitel.png');" type="button" class="btn btn-primary piecePromobutton"></button>
+                </div>
+               <div class="col">
+                  <button id="rPromoteTo" data-dismiss="modal" style="background-image: url('/static/imgs/rwhitel.png');" type="button" class="btn btn-primary piecePromobutton"></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="chess-grid">
-      {{$colourLight := true}}
+      {{$colourLight := true}}  
       {{$order := 57}}
       {{$row := 0}}
       {{range $board:=.Game.Board.Board}}
@@ -36,5 +68,9 @@
         {{$colourLight = not $colourLight}}
       {{end}}
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
   </body>
 </html>
