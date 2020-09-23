@@ -52,7 +52,7 @@ $(document).ready(function () {
     if (set) {
       document.getElementById("playerText").innerHTML =
         document.getElementById("playerText").innerHTML +
-        " You are in CHECK";
+        "\tCHECK";
     } else {
       document.getElementById("playerText").innerHTML =
         document.getElementById("playerText").innerHTML + "";
@@ -63,7 +63,7 @@ $(document).ready(function () {
     if (set) {
       document.getElementById("playerText").innerHTML =
         document.getElementById("playerText").innerHTML +
-        "        CHECKMATE      Game Over";
+        "\tCHECKMATE\tGame Over";
     } else {
       document.getElementById("playerText").innerHTML =
         document.getElementById("playerText").innerHTML + "";
@@ -249,8 +249,12 @@ $(document).ready(function () {
             location.reload()
         }
     } else if (mode == "ply") {
-        whiteTurn = (response === "true" ? true : false)
+        whiteTurn = (response.substring(0, 4) === "true" ? true : false)
         setPlayerText()
+        if (mateText(response.substring(response.length - 4, response.length) === "mate")) {
+            return;
+        }
+        checkText(response.substring(response.length - 5, response.length) === "check");
     }
   }
 

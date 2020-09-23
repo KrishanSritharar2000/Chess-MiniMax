@@ -51,3 +51,7 @@ body {
   margin-right:0.25rem;
 
 }
+
+#playerText {
+  text-align: center;
+}

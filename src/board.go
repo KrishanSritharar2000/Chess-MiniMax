@@ -235,8 +235,26 @@ func (p Piece) isCheck(b *Board) bool {
 		}
 	}
 
+	//Check for adjacent kings
+	var king Piece
+	if p.IsBlack {
+		king = b.kingW
+	} else {
+		king = b.kingB
+	}
+	if abs(king.x - p.x) <= 2 && abs(king.y - p.y) <= 2 {
+		for i := -1; i < 2; i++ {
+			for j := -1; j < 2; j++ {
+				if king.x + i == p.x && king.y + j == p.y {
+					return true
+				}
+			}
+		}
+	}	
+	
 	//No Check
 	return false
+
 
 }
 
@@ -392,12 +410,12 @@ func (p Piece) generatePossibleMoves(b *Board) []Position {
 
 		//En passant
 		if p.IsBlack {
-			if p.x == 3 && (b.lastPawnMoveW.y == p.y-1 || b.lastPawnMoveW.y == p.y+1) {
+			if p.x == 3 && b.lastPawnMoveW.x == 3 && (b.lastPawnMoveW.y == p.y-1 || b.lastPawnMoveW.y == p.y+1) {
 				allowedMoves = append(allowedMoves, Position{b.lastPawnMoveW.x - 1, b.lastPawnMoveW.y})
 			}
 		} else {
 			// fmt.Println("Last moved black pawn", b.lastPawnMoveB)
-			if p.x == 4 && (b.lastPawnMoveB.y == p.y-1 || b.lastPawnMoveB.y == p.y+1) {
+			if p.x == 4 && b.lastPawnMoveB.x == 4 && (b.lastPawnMoveB.y == p.y-1 || b.lastPawnMoveB.y == p.y+1) {
 				allowedMoves = append(allowedMoves, Position{b.lastPawnMoveB.x + 1, b.lastPawnMoveB.y})
 			}
 		}
@@ -594,6 +612,7 @@ func (p Piece) removeInvalidMoves(b *Board, slice []Position) []Position {
 	//Checks if moved piece resolves current check
 	var removeIndex []int
 	var reset bool
+
 	for i, val := range slice {
 		reset = false
 		currentPiece := b.Board[p.x][p.y]

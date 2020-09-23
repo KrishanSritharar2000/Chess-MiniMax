@@ -162,9 +162,10 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 		
 		case "rst":
 			SetupBoard(&game.Board)
+			game.IsWhiteTurn = true
 			fmt.Fprintf(w, "reload")
 		case "ply":
-			fmt.Fprintf(w, strconv.FormatBool(game.IsWhiteTurn))
+			fmt.Fprintf(w, strconv.FormatBool(game.IsWhiteTurn) + getCheckMessage(true))
 		default:
 			log.Print("HTTP Request Error")
 		}
@@ -217,27 +218,11 @@ func getString(slice []Position) string {
 	return word
 }
 
-func GamePageSelected(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("SUCCESS WE MADE IT TO SELECTED")
-	r.ParseForm()
-	fmt.Println("Form: ")
-	fmt.Println(r.Form)
-	t, err := template.ParseFiles("website/game.html")
-	if err != nil {
-		log.Print("Error parsing template: ", err)
-	}
-	err = t.Execute(w, WebpageData{game, username})
-	if err != nil {
-		log.Print("Error during executing: ", err)
-	}
-}
-
 func main() {
 	// StartGame()
 	http.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("./website"))))
 	http.HandleFunc("/", HomePage)
 	http.HandleFunc("/game", GamePage)
-	http.HandleFunc("/gameSelected", GamePageSelected)
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 	// res, err := http.Get("http://www.google.com/robots.txt")
