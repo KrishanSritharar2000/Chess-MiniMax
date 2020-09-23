@@ -643,9 +643,14 @@ func (p Piece) move(b *Board, newX, newY int) bool {
 	if p.checkAllowedMoves(b, newX, newY) {
 		//Sets pawn positions for en passant
 		if p.Symbol == "P" {
-			if p.IsBlack && p.x == 6 && newX == 4 {
+			// if p.IsBlack && p.x == 6 && newX == 4 {
+			// 	b.lastPawnMoveB = Position{newX, newY}
+			// } else if !p.IsBlack && p.x == 1 && newX == 3 {
+			// 	b.lastPawnMoveW = Position{newX, newY}
+			// }
+			if p.IsBlack {
 				b.lastPawnMoveB = Position{newX, newY}
-			} else if !p.IsBlack && p.x == 1 && newX == 3 {
+			} else {
 				b.lastPawnMoveW = Position{newX, newY}
 			}
 
