@@ -19,14 +19,16 @@ var (
 type WebpageData struct {
 	Game   *Game
 	Player string
+	IP string
 }
 
 func HomePage(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("IP:",GetIP(r), r.RemoteAddr)
 	if r.Method != "GET" {
 		log.Print("Not GET request recieved on Home Page")
 		return
 	}
-	vars := WebpageData{&game, "Krishan"}
+	vars := WebpageData{&game, "Krishan", GetIP(r)}
 	t, err := template.ParseFiles("website/index.html")
 	if err != nil {
 		log.Print("Error parsing template: ", err)
@@ -41,6 +43,7 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 // "opt 00" for give move options for piece at (0,0)
 // "mov 00 01" for move piece at (0,0) to (0,1)
 // "pwn 00q" to promote pawn at 00 to a queen
+// "rst " to restart the game
 func GamePage(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
@@ -59,7 +62,7 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Print("Error parsing template: ", err)
 		}
-		err = tmpl.Execute(w, WebpageData{&game, "Start Game"})
+		err = tmpl.Execute(w, WebpageData{&game, "Start Game", GetIP(r)})
 		if err != nil {
 			log.Print("Error during executing: ", err)
 		}
@@ -169,6 +172,24 @@ func getCheckMessage(result bool) string{
 	return checkText
 }
 
+// GetIP gets a requests IP address by reading off the forwarded-for
+// header (for proxies) and falls back to use the remote address.
+func GetIP(r *http.Request) string {
+	// forwarded := r.Header.Get("X-FORWARDED-FOR")
+	// if forwarded != "" {
+	// 	return forwarded
+	// }
+	// return r.RemoteAddr
+	IPAddress := r.Header.Get("X-Real-Ip")
+    if IPAddress == "" {
+        IPAddress = r.Header.Get("X-Forwarded-For")
+    }
+    if IPAddress == "" {
+        IPAddress = r.RemoteAddr
+    }
+    return IPAddress
+}
+
 func abs(x int) int {
 	if x >= 0 {
 		return x
@@ -195,7 +216,7 @@ func GamePageSelected(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Print("Error parsing template: ", err)
 	}
-	err = t.Execute(w, WebpageData{&game, "Returned form Selected"})
+	err = t.Execute(w, WebpageData{&game, "Returned form Selected", GetIP(r)})
 	if err != nil {
 		log.Print("Error during executing: ", err)
 	}
@@ -203,7 +224,6 @@ func GamePageSelected(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	// StartGame()
-
 	http.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("./website"))))
 	http.HandleFunc("/", HomePage)
 	http.HandleFunc("/game", GamePage)

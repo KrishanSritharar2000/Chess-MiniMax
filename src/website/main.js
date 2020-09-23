@@ -82,6 +82,17 @@ $(document).ready(function () {
       );
   }
 
+  function getForm(message, name) {
+    var myForm = document.createElement("FORM");
+    myForm.setAttribute("method", "POST");
+    var input = document.createElement("INPUT");
+    input.setAttribute("type", "text");
+    input.setAttribute("name", name);
+    input.setAttribute("value", message);
+    myForm.appendChild(input);
+    return myForm
+  }
+
   function movePiece(newPieceID, oldPieceID) {
     const newPiece = document.getElementById(newPieceID);
     const oldPiece = document.getElementById(oldPieceID);
@@ -236,43 +247,43 @@ $(document).ready(function () {
   });
 
   $(".piecePromobutton").click(function () {
-    var myForm = document.createElement("FORM");
-    myForm.setAttribute("method", "POST");
-    console.log("CLicked on this piece:", $(this).prop("id")[0])
-    var input = document.createElement("INPUT");
-    input.setAttribute("type", "text");
-    input.setAttribute("name", "empty");
-    var mode = "pwn"
-    input.setAttribute("value", mode + " " + promotedPawnLocation + $(this).prop("id")[0]);
-    console.log(mode + " " + promotedPawnLocation + $(this).prop("id")[0])
-    console.log("PROMOTED THE PAWN AT", promotedPawnLocation, "TO A", $(this).prop("id")[0]);
-    myForm.appendChild(input);
+    // var myForm = document.createElement("FORM");
+    // myForm.setAttribute("method", "POST");
+    // var input = document.createElement("INPUT");
+    // input.setAttribute("type", "text");
+    // input.setAttribute("name", "empty");
+    // var mode = "pwn"
+    // input.setAttribute("value", mode + " " + promotedPawnLocation + $(this).prop("id")[0]);
+    // console.log(mode + " " + promotedPawnLocation + $(this).prop("id")[0])
+    // console.log("PROMOTED THE PAWN AT", promotedPawnLocation, "TO A", $(this).prop("id")[0]);
+    // myForm.appendChild(input);
     fetch("/game", {
         method: "POST",
-        body: new FormData(myForm),
+        body: new FormData(getForm("pwn" + " " + promotedPawnLocation + $(this).prop("id")[0], "empty")),
       })
         .then((response) => response.text())
-        .then((data) => handleResponse(data, mode, $(this)))
+        .then((data) => handleResponse(data, "pwn", $(this)))
         .catch((error) => console.error("Error encountered: ", error));
   });
 
   $(".light, .dark").click(function () {
-    var myForm = document.createElement("FORM");
-    myForm.setAttribute("method", "POST");
+    // var myForm = document.createElement("FORM");
+    // myForm.setAttribute("method", "POST");
 
-    var input = document.createElement("INPUT");
-    input.setAttribute("type", "text");
-    input.setAttribute("name", $(this).prop("name"));
+    // var input = document.createElement("INPUT");
+    // input.setAttribute("type", "text");
+    // input.setAttribute("name", $(this).prop("name"));
 
     if (movesDisplayed) {
       if (htmlChangedPiece.includes($(this).prop("id"))) {
         console.log("Sending move request!!");
         //move the piece there
         var mode = "mov";
-        input.setAttribute(
-          "value",
-          mode + " " + moveDisplayedPiece + $(this).prop("id")
-        );
+        // input.setAttribute(
+        //   "value",
+        //   mode + " " + moveDisplayedPiece + $(this).prop("id")
+        // );
+        var value = mode + " " + moveDisplayedPiece + $(this).prop("id") 
       } else {
         //Clear displayed moves
         console.log("These are the changed pieces", htmlChangedPiece);
@@ -296,13 +307,14 @@ $(document).ready(function () {
       }
       // input.setAttribute("value", $(this).prop("name") + " " + $(this).val() + " piece selected");
       var mode = "opt";
-      input.setAttribute("value", mode + " " + $(this).prop("id"));
+    //   input.setAttribute("value", mode + " " + $(this).prop("id"));
+      var value = mode + " " + $(this).prop("id")
     }
-    myForm.appendChild(input);
+    // myForm.appendChild(input);
 
     fetch("/game", {
       method: "POST",
-      body: new FormData(myForm),
+      body: new FormData(getForm(value, $(this).prop("name"))),
     })
       .then((response) => response.text())
       .then((data) => handleResponse(data, mode, $(this)))
