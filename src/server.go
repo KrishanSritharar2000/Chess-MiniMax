@@ -176,7 +176,7 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 }
 
 func getCheckMessage(result bool) string{
-	var kingInCheck, kingInCheckMate bool
+	var kingInCheck, kingInCheckMate, kingInStaleMate bool
 	if game.IsWhiteTurn {
 		kingInCheck = game.Board.kingW.isCheck(&game.Board)
 	} else {
@@ -188,6 +188,12 @@ func getCheckMessage(result bool) string{
 		} else {
 			kingInCheckMate = game.Board.kingB.isCheckMate(&game.Board)
 		}
+	} else {
+		if game.IsWhiteTurn {
+			kingInStaleMate = game.Board.kingW.isCheckMate(&game.Board)
+		} else {
+			kingInStaleMate = game.Board.kingB.isCheckMate(&game.Board)
+		}
 	}
 
 	checkText := ""
@@ -196,6 +202,8 @@ func getCheckMessage(result bool) string{
 		checkText = "mate"
 	} else if result && kingInCheck {
 		checkText = "check"
+	} else if result && kingInStaleMate {
+		checkText = "stale"
 	}
 	return checkText
 }

@@ -71,6 +71,18 @@ $(document).ready(function () {
     return set;
   }
 
+  function staleText(set) {
+    if (set) {
+      document.getElementById("playerText").innerHTML =
+        document.getElementById("playerText").innerHTML +
+        "\tSTALEMATE\tGame Over";
+    } else {
+      document.getElementById("playerText").innerHTML =
+        document.getElementById("playerText").innerHTML + "";
+    }
+    return set;
+  }
+
   function setImage(object, url) {
     object.style.backgroundImage = url;
     object.style.backgroundSize = piecePixel;
@@ -216,6 +228,9 @@ $(document).ready(function () {
         result.substring(result.length - 5, result.length),
         result.substring(result.length - 5, result.length) === "check"
       );
+      if (staleText(result.substring(result.length - 5, result.length) === "stale")) {
+        return;
+      }
       if (mateText(result.substring(result.length - 4, result.length) === "mate")) {
         return;
       }
@@ -236,6 +251,9 @@ $(document).ready(function () {
                 ".png')"
             );
             setEmptyImage(moveDisplayedPiece)
+            if (staleText(result.substring(result.length - 5, result.length) === "stale")) {
+                return;
+              }
             if (mateText(response.substring(response.length - 4, response.length) === "mate")) {
                 return;
             }
@@ -251,6 +269,9 @@ $(document).ready(function () {
     } else if (mode == "ply") {
         whiteTurn = (response.substring(0, 4) === "true" ? true : false)
         setPlayerText()
+        if (staleText(result.substring(result.length - 5, result.length) === "stale")) {
+            return;
+          }
         if (mateText(response.substring(response.length - 4, response.length) === "mate")) {
             return;
         }

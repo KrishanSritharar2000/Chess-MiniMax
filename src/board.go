@@ -58,6 +58,7 @@ func ContainsInt(a []int, x int) bool {
 	return false
 }
 
+//Can also be used to check for stalemate
 func (p Piece) isCheckMate(b *Board) bool {
 	if p.IsBlack {
 		if len(b.kingB.removeInvalidMoves(b, b.kingB.generatePossibleMoves(b))) > 0 {
