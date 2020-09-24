@@ -99,7 +99,7 @@ $(document).ready(function () {
       );
   }
 
-  function getForm(message, name) {
+  function makeFetch(message, name, mode, clickedButton) {
     var myForm = document.createElement("FORM");
     myForm.setAttribute("method", "POST");
     var input = document.createElement("INPUT");
@@ -107,17 +107,24 @@ $(document).ready(function () {
     input.setAttribute("name", name);
     input.setAttribute("value", message);
     myForm.appendChild(input);
-    return myForm
+    fetch("/game", {
+        method: "POST",
+        body: new FormData(myForm),
+      })
+        .then((response) => response.text())
+        .then((data) => handleResponse(data, mode, clickedButton))
+        .catch((error) => console.error("Error encountered: ", error));
   }
 
   function getCurrentPlayerTurn() {
-    fetch("/game", {
-        method: "POST",
-        body: new FormData(getForm("ply ", "empty")),
-      })
-        .then((response) => response.text())
-        .then((data) => handleResponse(data, "ply", $(this)))
-        .catch((error) => console.error("Error encountered: ", error));
+      makeFetch("ply ", "empty", "ply", $(this))
+    // fetch("/game", {
+    //     method: "POST",
+    //     body: new FormData(getForm("ply ", "empty")),
+    //   })
+    //     .then((response) => response.text())
+    //     .then((data) => handleResponse(data, "ply", $(this)))
+    //     .catch((error) => console.error("Error encountered: ", error));
   }
 
   function movePiece(newPieceID, oldPieceID) {
@@ -251,7 +258,7 @@ $(document).ready(function () {
                 ".png')"
             );
             setEmptyImage(moveDisplayedPiece)
-            if (staleText(result.substring(result.length - 5, result.length) === "stale")) {
+            if (staleText(response.substring(response.length - 5, response.length) === "stale")) {
                 return;
               }
             if (mateText(response.substring(response.length - 4, response.length) === "mate")) {
@@ -269,13 +276,42 @@ $(document).ready(function () {
     } else if (mode == "ply") {
         whiteTurn = (response.substring(0, 4) === "true" ? true : false)
         setPlayerText()
-        if (staleText(result.substring(result.length - 5, result.length) === "stale")) {
+        if (staleText(response.substring(response.length - 5, response.length) === "stale")) {
             return;
           }
         if (mateText(response.substring(response.length - 4, response.length) === "mate")) {
             return;
         }
         checkText(response.substring(response.length - 5, response.length) === "check");
+    } else if (mode == "bck") {
+        console.log("SERVER:", response)
+        if (response.substring(0, 4) === "true") {
+
+            console.log("coord",response.substring(4,5), response.substring(5,6), response.substring(8,9) + response.substring(9,10))
+            movePiece(response.substring(4,5) + response.substring(5,6), response.substring(8,9) + response.substring(9,10))
+            const newPiece = document.getElementById(response.substring(8,9) + response.substring(9,10));
+            var name = response.substring(11, 12) == "t" ? "black" : "white"
+            name = response.substring(10, 11) == " " ? "empty" : name
+            newPiece.setAttribute("name", name);
+            newPiece.setAttribute("value", response.substring(10, 11));
+            if (response.substring(10, 11) == " ") {
+                setEmptyImage(response.substring(8,9) + response.substring(9,10))
+            } else {
+                setImage(
+                newPiece,
+                "url('/static/imgs/" +
+                    newPiece.value.toLowerCase() +
+                    newPiece.getAttribute("name") +
+                    newPiece.getAttribute("class")[0] +
+                    ".png')"
+                );
+            }
+            swapTurn()
+        } else {
+            document.getElementById("playerText").innerHTML =
+            document.getElementById("playerText").innerHTML +
+            "\tNo moves left to Undo";
+        }
     }
   }
 
@@ -290,13 +326,18 @@ $(document).ready(function () {
   }
 
   $("#return").click(function () {
-    fetch("/game", {
-        method: "POST",
-        body: new FormData(getForm("rst ", "empty")),
-      })
-        .then((response) => response.text())
-        .then((data) => handleResponse(data, "rst", $(this)))
-        .catch((error) => console.error("Error encountered: ", error));
+    makeFetch("rst ", "empty", "rst", $(this))
+    // fetch("/game", {
+    //     method: "POST",
+    //     body: new FormData(getForm("rst ", "empty")),
+    //   })
+    //     .then((response) => response.text())
+    //     .then((data) => handleResponse(data, "rst", $(this)))
+    //     .catch((error) => console.error("Error encountered: ", error));
+  });
+
+  $("#undo").click(function () {
+      makeFetch("bck ", "empty", "bck", $(this))
   });
 
   $(".piecePromobutton").click(function () {
@@ -310,13 +351,14 @@ $(document).ready(function () {
     // console.log(mode + " " + promotedPawnLocation + $(this).prop("id")[0])
     // console.log("PROMOTED THE PAWN AT", promotedPawnLocation, "TO A", $(this).prop("id")[0]);
     // myForm.appendChild(input);
-    fetch("/game", {
-        method: "POST",
-        body: new FormData(getForm("pwn" + " " + promotedPawnLocation + $(this).prop("id")[0], "empty")),
-      })
-        .then((response) => response.text())
-        .then((data) => handleResponse(data, "pwn", $(this)))
-        .catch((error) => console.error("Error encountered: ", error));
+    // fetch("/game", {
+    //     method: "POST",
+    //     body: new FormData(getForm("pwn" + " " + promotedPawnLocation + $(this).prop("id")[0], "empty")),
+    //   })
+    //     .then((response) => response.text())
+    //     .then((data) => handleResponse(data, "pwn", $(this)))
+    //     .catch((error) => console.error("Error encountered: ", error));
+    makeFetch("pwn" + " " + promotedPawnLocation + $(this).prop("id")[0], "empty", "pwn", $(this))
   });
 
   $(".light, .dark").click(function () {
@@ -365,13 +407,14 @@ $(document).ready(function () {
     }
     // myForm.appendChild(input);
 
-    fetch("/game", {
-      method: "POST",
-      body: new FormData(getForm(value, $(this).prop("name"))),
-    })
-      .then((response) => response.text())
-      .then((data) => handleResponse(data, mode, $(this)))
-      .catch((error) => console.error("Error encountered: ", error));
+    // fetch("/game", {
+    //   method: "POST",
+    //   body: new FormData(getForm(value, $(this).prop("name"))),
+    // })
+    //   .then((response) => response.text())
+    //   .then((data) => handleResponse(data, mode, $(this)))
+    //   .catch((error) => console.error("Error encountered: ", error));
+    makeFetch(value, $(this).prop("name"), mode, $(this))
   });
 
   $("button").click(function () {

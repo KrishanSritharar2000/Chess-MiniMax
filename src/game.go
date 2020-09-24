@@ -10,6 +10,11 @@ import (
 type Game struct {
 	Board Board
 	IsWhiteTurn bool
+	Moves *MoveStack
+}
+
+type Move struct {
+	From, To Piece
 }
 
 func (g *Game) nextTurn() {
@@ -71,20 +76,34 @@ func (g *Game) getTurn(r bufio.Reader) (int, int, int, int) {
 	return startX, startY, endX, endY
 }
 
+func (g *Game) undoTurn() (bool, Move) {
+	move, ok := g.Moves.Pop()
+	if ok {
+		startPiece := move.From
+		endPiece := move.To
+		g.Board.Board[startPiece.x][startPiece.y] = startPiece
+		g.Board.Board[endPiece.x][endPiece.y] = endPiece
+		g.nextTurn()
+		return true, move
+	}
+	return false, move
+}
+
 func (g *Game) makeMove(startX, startY, endX, endY int) bool {
 
-	piece := g.Board.Board[startX][startY]	
-	if piece.Symbol == " " {
+	startPiece := g.Board.Board[startX][startY]	
+	if startPiece.Symbol == " " {
 		fmt.Println("There is no piece there!")
 		return false
-	} else if piece.IsBlack == g.IsWhiteTurn {
+	} else if startPiece.IsBlack == g.IsWhiteTurn {
 		fmt.Println("That is not your piece, you cannot move it!")
 		return false
 	}
-
+	endPiece := g.Board.Board[endX][endY]
 	result := g.Board.Board[startX][startY].move(&g.Board, endX, endY)
 	//moving white piece need to check piece is white
 	if result {
+		g.Moves.Push(Move{startPiece, endPiece})
 		g.nextTurn()
 	} else {
 		fmt.Println("That move is not allowed")
@@ -93,7 +112,7 @@ func (g *Game) makeMove(startX, startY, endX, endY int) bool {
 }
 
 func StartGame() {
-	g := Game{Board{}, true}
+	g := Game{Board{}, true, &MoveStack{}}
 	SetupBoard(&g.Board)
 	fmt.Println(g.Board)
 	reader := bufio.NewReader(os.Stdin)

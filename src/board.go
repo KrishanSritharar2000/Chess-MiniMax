@@ -657,7 +657,6 @@ func (p Piece) removeInvalidMoves(b *Board, slice []Position) []Position {
 	return slice
 }
 
-
 func (p Piece) move(b *Board, newX, newY int) bool {
 	// Check if allowed move
 	if p.checkAllowedMoves(b, newX, newY) {

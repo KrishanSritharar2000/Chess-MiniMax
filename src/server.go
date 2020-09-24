@@ -12,29 +12,28 @@ import (
 )
 
 var (
-	game *Game
+	game     *Game
 	username string
-	users = make(map[string]*Game)
+	users    = make(map[string]*Game)
 )
 
-//get rid of this
-type WebpageData struct {
-	Game   *Game
-	Player string
+type WebPageData struct {
+	Game     *Game
+	Player	 string
 }
 
 func GetGame(r *http.Request) {
 	ip := r.RemoteAddr
 	if string(ip[0]) == "[" {
 		//parse localHost IP
-		ip = ip[:5]//since localhost is like [::1]:PORT
+		ip = ip[:5] //since localhost is like [::1]:PORT
 	} else {
-		ip = strings.Split(ip, ":")[0]//Splits IPv4 address and port into just address
+		ip = strings.Split(ip, ":")[0] //Splits IPv4 address and port into just address
 	}
 	if g, ok := users[ip]; ok {
 		game = g
 	} else {
-		users[ip] = &Game{Board{}, true}
+		users[ip] = &Game{Board{}, true, &MoveStack{}}
 		game = users[ip]
 		SetupBoard(&game.Board)
 	}
@@ -47,7 +46,7 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 		log.Print("Not GET request recieved on Home Page")
 		return
 	}
-	vars := WebpageData{game, username}
+	vars := WebPageData{game, username}
 	t, err := template.ParseFiles("website/index.html")
 	if err != nil {
 		log.Print("Error parsing template: ", err)
@@ -63,14 +62,13 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 // "mov 00 01" for move piece at (0,0) to (0,1)
 // "pwn 00q" to promote pawn at 00 to a queen
 // "rst " to restart the game
+// "ply " to get player turn and check information
 func GamePage(w http.ResponseWriter, r *http.Request) {
 	GetGame(r)
 	fmt.Println("IP:", r.RemoteAddr)
 	fmt.Println(users)
 	switch r.Method {
 	case "GET":
-		// game = Game{Board{}, true}
-		// SetupBoard(&game.Board)
 		tmpl, err := template.New("game.html").Funcs(template.FuncMap{
 			"minus": func(a, b int) int {
 				return a - b
@@ -79,11 +77,10 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 				return a + b
 			},
 		}).ParseFiles("website/game.html")
-		// t, err := template.ParseFiles("website/game.html")
 		if err != nil {
 			log.Print("Error parsing template: ", err)
 		}
-		err = tmpl.Execute(w, WebpageData{game, username})
+		err = tmpl.Execute(w, WebPageData{game, username})
 		if err != nil {
 			log.Print("Error during executing: ", err)
 		}
@@ -123,7 +120,7 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 			result := game.makeMove(startX, startY, destX, destY)
 			fmt.Println("Is there a pawn promotion: ", game.Board.promotePawn)
 
-			checkText := getCheckMessage(result) 
+			checkText := getCheckMessage(result)
 			//check for en passant
 			if result && game.Board.Board[destX][destY].Symbol == "P" && abs(startY-destY) == 1 && enPassantCheckPiece == " " {
 				fmt.Fprintf(w, "Result:"+"enpassant"+strconv.Itoa(startX)+strconv.Itoa(destY)+checkText)
@@ -142,30 +139,39 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 						rookLocation = "0003"
 					}
 				}
-				fmt.Fprintf(w, "Result:" + "castle" + rookLocation + checkText)
+				fmt.Fprintf(w, "Result:"+"castle"+rookLocation+checkText)
 			} else if game.Board.promotePawn {
 				game.Board.promotePawn = false
 				fmt.Println("CHANGED PAWN PROMOTE BACK TO: ", game.Board.promotePawn)
-				fmt.Fprintf(w, "Result:" + "pwn" + checkText)
+				fmt.Fprintf(w, "Result:"+"pwn"+checkText)
 
 			} else {
 				fmt.Println("Result:" + strconv.FormatBool(result) + checkText)
-				fmt.Fprintf(w, "Result:" + strconv.FormatBool(result) + checkText)
+				fmt.Fprintf(w, "Result:"+strconv.FormatBool(result)+checkText)
 			}
-
+			fmt.Println("This is the move stack:", game.Moves)
 		case "pwn":
 			x, y := int(rest[0])-int('0'), int(rest[1])-int('0')
 			fmt.Println("This is the string of the oanw to promote:", string(rest[2]))
 			result := game.Board.Board[x][y].promotePawn(&game.Board, string(rest[2]))
-			checkText := getCheckMessage(result) 
-			fmt.Fprintf(w, strconv.FormatBool(result) + checkText)
-		
+			checkText := getCheckMessage(result)
+			fmt.Fprintf(w, strconv.FormatBool(result)+checkText)
+
 		case "rst":
 			SetupBoard(&game.Board)
 			game.IsWhiteTurn = true
 			fmt.Fprintf(w, "reload")
 		case "ply":
-			fmt.Fprintf(w, strconv.FormatBool(game.IsWhiteTurn) + getCheckMessage(true))
+			fmt.Fprintf(w, strconv.FormatBool(game.IsWhiteTurn)+getCheckMessage(true))
+		case "bck":
+			result, move := game.undoTurn()
+			if result {
+				fmt.Println("Un did this move:", move)
+				fmt.Fprintf(w, "true" + strconv.Itoa(move.From.x) + strconv.Itoa(move.From.y) + string(move.From.Symbol) + string(strconv.FormatBool(move.From.IsBlack)[0]) + strconv.Itoa(move.To.x) + strconv.Itoa(move.To.y) + string(move.To.Symbol) + string(strconv.FormatBool(move.To.IsBlack)[0]))
+			} else {
+				fmt.Fprintf(w, "false")
+			}
+
 		default:
 			log.Print("HTTP Request Error")
 		}
@@ -175,7 +181,7 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getCheckMessage(result bool) string{
+func getCheckMessage(result bool) string {
 	var kingInCheck, kingInCheckMate, kingInStaleMate bool
 	if game.IsWhiteTurn {
 		kingInCheck = game.Board.kingW.isCheck(&game.Board)
@@ -207,7 +213,6 @@ func getCheckMessage(result bool) string{
 	}
 	return checkText
 }
-
 
 func abs(x int) int {
 	if x >= 0 {
