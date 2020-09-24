@@ -9,6 +9,7 @@ $(document).ready(function () {
   getCurrentPlayerTurn();
   var promotedPawnLocation = ""
   var promotedPawnColour = ""
+  var otherPieceClicked = 0
   const piecePixel = "100px 100px";
 
   const whitePieces = document.getElementsByName("white");
@@ -53,17 +54,33 @@ $(document).ready(function () {
       document.getElementById("playerText").innerHTML =
         document.getElementById("playerText").innerHTML +
         "\tCHECK";
+        document.getElementById("playerText")
+        $("#playerText").addClass("animated pulse fast").one(
+          "webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend",
+          function () {
+            $(this).removeClass("animated pulse fast");
+          }
+        );
     } else {
       document.getElementById("playerText").innerHTML =
         document.getElementById("playerText").innerHTML + "";
     }
   }
 
+  // $("#playerText").one("animationend", document.getElementById("playerText").removeClass('animated pulse'))
+
   function mateText(set) {
     if (set) {
       document.getElementById("playerText").innerHTML =
         document.getElementById("playerText").innerHTML +
         "\tCHECKMATE\tGame Over";
+        document.getElementById("playerText")
+        $("#playerText").addClass("animated tada").one(
+          "webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend",
+          function () {
+            $(this).removeClass("animated tada");
+          }
+        );
     } else {
       document.getElementById("playerText").innerHTML =
         document.getElementById("playerText").innerHTML + "";
@@ -76,6 +93,12 @@ $(document).ready(function () {
       document.getElementById("playerText").innerHTML =
         document.getElementById("playerText").innerHTML +
         "\tSTALEMATE\tGame Over";
+        $("#playerText").addClass("animated tada").one(
+          "webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend",
+          function () {
+            $(this).removeClass("animated tada");
+          }
+        );
     } else {
       document.getElementById("playerText").innerHTML =
         document.getElementById("playerText").innerHTML + "";
@@ -145,7 +168,7 @@ $(document).ready(function () {
     oldPiece.setAttribute("value", " ");
     setImage(
       oldPiece,
-      "url('/static/imgs/" + oldPiece.getAttribute("class") + ".png')"
+      "url('/static/imgs/" + oldPiece.getAttribute("class").substring(0, 5).trim() + ".png')"
     );
   }
 
@@ -308,9 +331,12 @@ $(document).ready(function () {
             }
             swapTurn()
         } else {
-            document.getElementById("playerText").innerHTML =
-            document.getElementById("playerText").innerHTML +
-            "\tNo moves left to Undo";
+            var message = "No moves left to Undo"
+            if (!document.getElementById("playerText").innerHTML.includes(message)) {
+                document.getElementById("playerText").innerHTML =
+                document.getElementById("playerText").innerHTML +
+                "\t" + message;
+            }
         }
     }
   }
@@ -325,7 +351,7 @@ $(document).ready(function () {
     movesDisplayed = false;
   }
 
-  $("#return").click(function () {
+  $("#restart").click(function () {
     makeFetch("rst ", "empty", "rst", $(this))
     // fetch("/game", {
     //     method: "POST",
@@ -362,6 +388,12 @@ $(document).ready(function () {
   });
 
   $(".light, .dark").click(function () {
+    $(this).addClass("animated pulse faster").one(
+      "webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend",
+      function () {
+        $(this).removeClass("animated pulse faster");
+      }
+    );
     // var myForm = document.createElement("FORM");
     // myForm.setAttribute("method", "POST");
 
@@ -394,12 +426,20 @@ $(document).ready(function () {
         (!whiteTurn && $(this).prop("name") == "white")
       ) {
         console.log("NO REQUEST TO SERVER. THAT IS OPPONENTS PIECE");
+        if (++otherPieceClicked >= 2) {
+          $("#playerText").addClass("animated flash").one(
+            "webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend",
+            function () {
+              $(this).removeClass("animated flash");})
+          otherPieceClicked = 0
+        }
         return;
       }
       if ($(this).prop("name") == "empty") {
         console.log("NO REQUEST TO SERVER. THERE IS NO PIECE THERE");
         return;
       }
+      otherPieceClicked = 0
       // input.setAttribute("value", $(this).prop("name") + " " + $(this).val() + " piece selected");
       var mode = "opt";
     //   input.setAttribute("value", mode + " " + $(this).prop("id"));
@@ -421,7 +461,7 @@ $(document).ready(function () {
     console.log("Value is: ", $(this).prop("id"));
     console.log("Name is: ", $(this).prop("name"));
     console.log("Class is: ", $(this).prop("class"));
-    console.log("Button Text is: ", $(this).text(), $(this).text().length);
+    console.log("Button Text is: ", $(this).text(), $(this).text().length); 
   });
 });
 

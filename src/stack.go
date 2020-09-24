@@ -37,5 +37,8 @@ type MoveStack struct { Stack }
 func (s *MoveStack) Push(item Move) { s.Stack.Push(item) }
 func (s *MoveStack) Pop() (Move, bool)  {
 	val, bol := s.Stack.Pop()
-	return val.(Move), bol
+	if bol {
+		return val.(Move), bol
+	}
+	return Move{}, bol
 }

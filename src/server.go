@@ -160,6 +160,7 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 		case "rst":
 			SetupBoard(&game.Board)
 			game.IsWhiteTurn = true
+			game.Moves = &MoveStack{}
 			fmt.Fprintf(w, "reload")
 		case "ply":
 			fmt.Fprintf(w, strconv.FormatBool(game.IsWhiteTurn)+getCheckMessage(true))
