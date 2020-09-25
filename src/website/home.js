@@ -5,6 +5,8 @@ $(document).ready(function () {
   var onlineText = "Find an Opponent";
   var inner = ""
   var clicked = false
+  document.getElementById("startGame").innerHTML = onlineText
+
   $("#local").click(function () {
     document.getElementById("startGame").innerHTML = localText;
   });

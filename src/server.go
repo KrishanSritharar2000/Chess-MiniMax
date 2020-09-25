@@ -106,11 +106,12 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 		}
 		if num == 2 {
 			fmt.Println("Find Opponent")
-			SetGameMode(usr.whitePlayer, num)
+			SetGameMode(usr.userID, num)
 			session <- usr
 			for usr.whitePlayer == "" {}
+			clients[usr.blackPlayer].Game = usr.Game
 		} else {
-			SetGameMode(usr.whitePlayer, num)
+			SetGameMode(usr.userID, num)
 		}
 		fmt.Fprintf(w, "success")
 		fmt.Println("To Client: success GameMode:", num, "User:", usr)
@@ -157,15 +158,18 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 			message = r.FormValue("empty")
 		}
 		fmt.Println("----------------------------------")
-		fmt.Println("Message from Client:", message)
-
-		splitIndex := strings.Index(message, " ")
-		if splitIndex == -1 {
-			log.Print("Error in HTTP request:", message, len(message))
+		fmt.Println("Message from Client:", message, len(message))
+		opcode := message
+		rest := ""
+		if len(message) > 3 {
+			splitIndex := strings.Index(message, " ")
+			if splitIndex == -1 {
+				log.Print("Error in HTTP request:", message, len(message))
+			}
+			fmt.Println("message:", message, " splitIndex:", splitIndex)
+			rest = message[(splitIndex + 1):]
+			opcode = message[:splitIndex]
 		}
-		fmt.Println("message:", message, " splitIndex:", splitIndex)
-		rest := message[(splitIndex + 1):]
-		opcode := message[:splitIndex]
 
 		switch opcode {
 		case "opt":
@@ -219,7 +223,6 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 			result := game.Board.Board[x][y].promotePawn(&game.Board, string(rest[2]))
 			checkText := getCheckMessage(game, result)
 			fmt.Fprintf(w, strconv.FormatBool(result)+checkText)
-
 		case "rst":
 			SetupBoard(&game.Board)
 			game.IsWhiteTurn = true
@@ -236,7 +239,14 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 			} else {
 				fmt.Fprintf(w, "false")
 			}
-
+		case "col":
+			fmt.Println("Gamemode:", usr.GameMode)
+			if usr.GameMode == 2 {
+				fmt.Println("response:",strconv.FormatBool(usr.whitePlayer == usr.userID))
+				fmt.Fprintf(w, strconv.FormatBool(usr.whitePlayer == usr.userID) + strconv.Itoa(usr.GameMode))
+			} else {
+				fmt.Fprintf(w, "true" + strconv.Itoa(usr.GameMode))
+			}
 		default:
 			log.Print("HTTP Request Error")
 		}

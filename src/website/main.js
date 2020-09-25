@@ -7,6 +7,10 @@ $(document).ready(function () {
   var htmlChangedPieceOrigImage = [];
   var whiteTurn = true
   getCurrentPlayerTurn();
+  var thisIsWhitePlayer = true
+  var gameMode = 0
+  getPlayerColourAndMode()
+  console.log("THIS IS THE PLAYER COLOUR:", thisIsWhitePlayer)
   var promotedPawnLocation = ""
   var promotedPawnColour = ""
   var otherPieceClicked = 0
@@ -38,6 +42,7 @@ $(document).ready(function () {
 
   function swapTurn() {
     whiteTurn = !whiteTurn;
+    thisIsWhitePlayer = !thisIsWhitePlayer
     setPlayerText()
   }
 
@@ -148,6 +153,10 @@ $(document).ready(function () {
     //     .then((response) => response.text())
     //     .then((data) => handleResponse(data, "ply", $(this)))
     //     .catch((error) => console.error("Error encountered: ", error));
+  }
+
+  function getPlayerColourAndMode() {
+    makeFetch("col", "empty", "col", $(this))
   }
 
   function movePiece(newPieceID, oldPieceID) {
@@ -338,6 +347,11 @@ $(document).ready(function () {
                 "\t" + message;
             }
         }
+    } else if (mode == "col") {
+      thisIsWhitePlayer = response.substring(0, 4) == "true"
+      console.log(response, response.substring(0, 4), thisIsWhitePlayer)
+      gameMode = parseInt(response.slice(response.length - 1))
+      console.log("THIS IS THE GAME MODE", gameMode, response.slice(response.length - 1))
     }
   }
 
@@ -421,9 +435,13 @@ $(document).ready(function () {
       }
     }
     if (!movesDisplayed) {
+      var turnChecker = whiteTurn
+      if (gameMode == 2) {
+        turnChecker = thisIsWhitePlayer
+      }
       if (
-        (whiteTurn && $(this).prop("name") == "black") ||
-        (!whiteTurn && $(this).prop("name") == "white")
+        (turnChecker && $(this).prop("name") == "black") ||
+        (!turnChecker && $(this).prop("name") == "white")
       ) {
         console.log("NO REQUEST TO SERVER. THAT IS OPPONENTS PIECE");
         if (++otherPieceClicked >= 2) {
