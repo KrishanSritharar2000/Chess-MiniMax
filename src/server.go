@@ -13,13 +13,29 @@ import (
 
 var (
 	clients = make(map[string]*User)
+	session = make(chan *User)
 )
+
+func pairPlayers() {
+	var firstPlayer, secondPlayer *User
+	for {
+		fmt.Println("\n\nStarted loop\n\n")
+		firstPlayer = <- session
+		fmt.Println("\n\nGot First player", firstPlayer, "\n\n")
+		secondPlayer = <- session
+		fmt.Println("\n\nGot second player", secondPlayer, "\n\n")
+		firstPlayer.whitePlayer = firstPlayer.userID
+		firstPlayer.blackPlayer = secondPlayer.userID
+		secondPlayer.whitePlayer = firstPlayer.userID
+		secondPlayer.blackPlayer = secondPlayer.userID
+	}
+}
 
 type User struct {
 	Game     *Game
 	GameMode int //0 local PvP, 1 AI, 2 Online PvP
-	whitePlayer, blackPlayer string //ip address
-	
+	userID string// ip address
+	whitePlayer, blackPlayer string //ip address of players 
 }
 
 func GetUserAndGame(r *http.Request) (*User, *Game) {
@@ -33,18 +49,34 @@ func GetUserAndGame(r *http.Request) (*User, *Game) {
 	}
 	if usr, ok := clients[ip]; ok {
 		return usr, usr.Game
-	} else {
-		clients[ip] = &User{&Game{Board{}, true, &MoveStack{}}, 0, ip, ""}
-		game := clients[ip].Game
-		SetupBoard(&game.Board)
-		return clients[ip], game
 	}
+	clients[ip] = &User{&Game{Board{}, true, &MoveStack{}}, 0, ip, "", ""}
+	game := clients[ip].Game
+	SetupBoard(&game.Board)
+	return clients[ip], game
 }
 
 func SetGameMode(userIP string, gameMode int) {
 	if usr, ok := clients[userIP]; ok {
 		usr.GameMode = gameMode
 		fmt.Println("\nGAME MODE SET\n")
+	}
+}
+
+func ClearOnlineGame(user *User) {
+	var ok bool
+	var opponent *User
+	if user.whitePlayer == user.userID {
+		opponent, ok = clients[user.blackPlayer]
+	} else {
+		opponent, ok = clients[user.whitePlayer]
+	}
+	if ok {
+		user.whitePlayer = ""
+		user.blackPlayer = ""
+		opponent.whitePlayer = ""
+		opponent.blackPlayer = ""
+		fmt.Println("Cleared game opponent data")
 	}
 }
 
@@ -61,6 +93,9 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Print("Error during executing: ", err)
 		}
+		if usr.whitePlayer != "" {
+			ClearOnlineGame(usr)
+		}
 	case "POST":
 		r.ParseMultipartForm(0)
 		message := r.FormValue("option")
@@ -71,15 +106,14 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 		}
 		if num == 2 {
 			fmt.Println("Find Opponent")
-			time.Sleep(time.Second * 3)
 			SetGameMode(usr.whitePlayer, num)
+			session <- usr
+			for usr.whitePlayer == "" {}
 		} else {
 			SetGameMode(usr.whitePlayer, num)
 		}
 		fmt.Fprintf(w, "success")
-		fmt.Println("To Client: success GameMode:", num)
-
-
+		fmt.Println("To Client: success GameMode:", num, "User:", usr)
 	}
 }
 
@@ -263,6 +297,7 @@ func getString(slice []Position) string {
 }
 
 func main() {
+	go pairPlayers()
 	// StartGame()
 	http.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("./website"))))
 	http.HandleFunc("/", HomePage)

@@ -4,6 +4,7 @@ $(document).ready(function () {
   var aiText = "Battle the AI";
   var onlineText = "Find an Opponent";
   var inner = ""
+  var clicked = false
   $("#local").click(function () {
     document.getElementById("startGame").innerHTML = localText;
   });
@@ -13,12 +14,20 @@ $(document).ready(function () {
   });
 
   $("#online").click(function () {
-    document.getElementById("startGame").innerHTML = onlineText;
+    if (clicked) {
+    document.getElementById("startGame").innerHTML =
+    "<span class='spinner-border spinner-border-sm mr-2' role='status' aria-hidden='true'></span>" +
+    onlineText;
+    } else {
+        document.getElementById("startGame").innerHTML = onlineText;
+        
+    }
   });
 
   $("#startGame").click(function () {
     inner = document.getElementById("startGame").innerHTML;
     if (inner == onlineText) {
+        clicked = true
       document.getElementById("startGame").innerHTML =
         "<span class='spinner-border spinner-border-sm mr-2' role='status' aria-hidden='true'></span>" +
         inner;
@@ -55,7 +64,12 @@ $(document).ready(function () {
       body: new FormData(myForm),
     })
       .then((response) => response.text())
-      .then((data) => {console.log("Server:", data);document.getElementById("gameOptions").submit()})
+      .then((data) => {
+          console.log("Server:", data);
+        //   if (!changedPage) {
+              document.getElementById("gameOptions").submit()})
+        //       changedPage = true
+        // }})
       .catch((error) => console.error("Error encountered: ", error));
   })
 });
