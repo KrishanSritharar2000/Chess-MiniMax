@@ -256,6 +256,7 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 			if result {
 				fmt.Println("Un did this move:", move)
 				fmt.Fprintf(w, "true" + strconv.Itoa(move.From.x) + strconv.Itoa(move.From.y) + string(move.From.Symbol) + string(strconv.FormatBool(move.From.IsBlack)[0]) + strconv.Itoa(move.To.x) + strconv.Itoa(move.To.y) + string(move.To.Symbol) + string(strconv.FormatBool(move.To.IsBlack)[0]))
+				
 			} else {
 				fmt.Fprintf(w, "false")
 			}

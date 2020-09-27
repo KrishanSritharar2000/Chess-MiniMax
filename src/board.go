@@ -850,6 +850,9 @@ func SetupBoard(Board *Board) {
 	Board.kingB = Board.Board[7][4]
 	Board.whiteCheck = false
 	Board.blackCheck = false
+	Board.castleCheck = [6]bool{false, false, false, false, false, false}
+	Board.promotePawn = false
+
 	// print("Inital Value", Board.whiteCheck)
 	// print("Inital Value", Board.lastPawnMoveB.x, Board.lastPawnMoveB.y)
 	// print("Inital Value", Board.lastPawnMoveW.x, Board.lastPawnMoveW.y)

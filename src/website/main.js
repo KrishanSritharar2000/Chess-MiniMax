@@ -265,8 +265,15 @@ $(document).ready(function () {
           document.getElementById("bPromoteTo").style.backgroundImage = "url('/static/imgs/b" + promotedPawnColour + "l.png')"
           document.getElementById("hPromoteTo").style.backgroundImage = "url('/static/imgs/h" + promotedPawnColour + "l.png')"
           document.getElementById("rPromoteTo").style.backgroundImage = "url('/static/imgs/r" + promotedPawnColour + "l.png')"
-          $("#piecePromoteModal").modal('show')
-          console.log("SHOWN MODAL")
+          if (gameMode == 2) {
+            if (thisIsWhitePlayer == whiteTurn) {
+              $("#piecePromoteModal").modal('show')
+              console.log("SHOWN MODAL")
+            }
+          } else {
+            $("#piecePromoteModal").modal('show')
+            console.log("SHOWN MODAL")
+          }
       }
       console.log(
         "CHECK TEXT: ",
@@ -352,6 +359,26 @@ $(document).ready(function () {
                     newPiece.getAttribute("class")[0] +
                     ".png')"
                 );
+            }
+
+            //check undoing a castle
+            if (response.substring(6,7) == "K" && Math.abs(parseInt(response.substring(5,6)) - parseInt(response.substring(9,10))) == 2) {
+              var rookLoc = ""
+              var spaceLoc = ""
+              if (response.substring(4,5) == "7") {
+                //black king castled
+                rookLoc = (response.substring(9,10) == "2") ? "70" : "77"
+                spaceLoc = (response.substring(9,10) == "2") ? "73" : "75"
+              } else {
+                //white king castled
+                rookLoc = (response.substring(9,10) == "2") ? "00" : "07"
+                spaceLoc = (response.substring(9,10) == "2") ? "03" : "05"
+              }
+              const rookPiece = document.getElementById(rookLoc);
+              rookPiece.setAttribute("name",  response.substring(7, 8) == "t" ? "black" : "white");
+              rookPiece.setAttribute("value", "R");
+              setImage(rookPiece, "url('/static/imgs/" + rookPiece.value.toLowerCase() + rookPiece.getAttribute("name") + rookPiece.getAttribute("class")[0] + ".png')")
+              setEmptyImage(spaceLoc)
             }
             swapTurn()
         } else {

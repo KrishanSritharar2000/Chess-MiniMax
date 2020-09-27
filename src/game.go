@@ -84,6 +84,39 @@ func (g *Game) undoTurn() (bool, Move) {
 		g.Board.Board[startPiece.x][startPiece.y] = startPiece
 		g.Board.Board[endPiece.x][endPiece.y] = endPiece
 		g.nextTurn()
+
+		//check castle
+		if startPiece.Symbol == "K" && abs(startPiece.y - endPiece.y) == 2 {
+			var rookX int
+			if startPiece.IsBlack {
+				rookX = 7
+				g.Board.castleCheck[1] = false
+			} else {
+				rookX = 0
+				g.Board.castleCheck[0] = false
+			}
+			if (endPiece.y == 6) {
+				g.Board.Board[rookX][7] = g.Board.Board[rookX][5]
+				g.Board.Board[rookX][7].x = rookX
+				g.Board.Board[rookX][7].y = 7
+				g.Board.Board[rookX][5] = Piece{rookX, 5, " ", false}
+				if rookX == 0 {
+					g.Board.castleCheck[3] = false
+				} else {
+					g.Board.castleCheck[2] = false
+				}
+			} else {
+				g.Board.Board[rookX][0] = g.Board.Board[rookX][3]
+				g.Board.Board[rookX][0].x = rookX
+				g.Board.Board[rookX][0].y = 0
+				g.Board.Board[rookX][3] = Piece{rookX, 3, " ", false}
+				if rookX == 0 {
+					g.Board.castleCheck[5] = false
+				} else {
+					g.Board.castleCheck[4] = false
+				}
+			}
+		}
 		return true, move
 	}
 	return false, move
