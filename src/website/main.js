@@ -380,6 +380,15 @@ $(document).ready(function () {
               setImage(rookPiece, "url('/static/imgs/" + rookPiece.value.toLowerCase() + rookPiece.getAttribute("name") + rookPiece.getAttribute("class")[0] + ".png')")
               setEmptyImage(spaceLoc)
             }
+
+            //check undoing pawn promotion
+            if (response.substring(6,7) == "P" && (response.substring(8,9) == "7" || response.substring(8,9) == "0")) {
+              var pawnPiece = document.getElementById(response.substring(4,5) + response.substring(5,6));
+              pawnPiece.setAttribute("value", "p")
+              setImage(
+                pawnPiece, "url('/static/imgs/" + pawnPiece.value.toLowerCase() + pawnPiece.getAttribute("name") + pawnPiece.getAttribute("class")[0] + ".png')");
+            }
+
             swapTurn()
         } else {
             var message = "No moves left to Undo"
