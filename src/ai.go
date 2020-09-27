@@ -2,11 +2,16 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
+	"time"
+	"bufio"
+	"os"
 )
 
 const maxScore = 100
 var (
 	pieceScores = map[string]int{"Q":9, "R":5, "B":3, "H":3, "P":1}
+	randomNumbers = rand.New(rand.NewSource(time.Now().UnixNano()))
 )
 
 type MovePair struct {
@@ -76,8 +81,52 @@ func (g *Game) GetAvailableMoves(forWhite bool) []MovePair {
 	return moves
 }
 
-func (g *Game) FindBestMove() {
-	fmt.Println("FOUND IT")
+func (g *Game) FindBestMove(forWhite bool, depth int) MovePair {
+	bestMoves := make([]MovePair, 0)
+	var currValue, bestValue int
+	if forWhite {
+		bestValue = maxScore
+	} else {
+		bestValue = -maxScore
+	}
+	moves := g.GetAvailableMoves(forWhite)
+	for _, move := range moves {
+		g.makeMove(move.From.x, move.From.y, move.To.x, move.To.y)
+		currValue = g.Minimax(0, depth, !forWhite)
+		g.undoTurn()
+		if (forWhite && currValue <= bestValue) || (!forWhite && currValue >= bestValue) {
+			if currValue == bestValue {
+				bestMoves = append(bestMoves, move)
+			} else {
+				bestValue = currValue
+				bestMoves = nil
+				bestMoves = make([]MovePair, 0)
+				bestMoves = append(bestMoves, move)
+			}
+			
+		}
+	}
+	fmt.Println("This is the bestValue:", bestValue)
+	fmt.Println("These are the bestMoves:", bestMoves)
+	if len(bestMoves) > 1 {
+		return bestMoves[randomNumbers.Intn(len(bestMoves))]
+	}
+	return bestMoves[0]
+
+}
+
+func Max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func Min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 //White is the maximising player
@@ -101,14 +150,31 @@ func (g *Game) Minimax(depth, maxDepth int, isMaxTurn bool) int {
 		return g.getValueOfPiecesOnBoard(isMaxTurn)
 	}
 
+	var currValue int
 	if isMaxTurn {
 		// best = -1000000
-		moves := g.GetAvailableMoves()
-
+		moves := g.GetAvailableMoves(true)
+		for _, move := range moves {
+			//Make move
+			g.makeMove(move.From.x, move.From.y, move.To.x, move.To.y)
+			//Recurse
+			currValue = Max(currValue, g.Minimax(depth + 1, maxDepth, false))
+			//Undo move
+			g.undoTurn()
+		}
 	} else {
 		// best = 1000000
-
+		moves := g.GetAvailableMoves(false)
+		for _, move := range moves {
+			//Make move
+			g.makeMove(move.From.x, move.From.y, move.To.x, move.To.y)
+			//Recurse
+			currValue = Min(currValue, g.Minimax(depth + 1, maxDepth, true))
+			//Undo move
+			g.undoTurn()
+		}
 	}
+	return currValue  
 }
 
 func main() {
@@ -116,4 +182,19 @@ func main() {
 	SetupBoard(&g.Board)
 	g.GetAvailableMoves(true)
 	fmt.Println("Value:", g.GetValue(true))
+	fmt.Println(g.Board)
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		for {
+			fmt.Println(g.Board)
+			result := g.makeMove(g.getTurn(*reader))
+			if result {
+				break
+			}
+		}
+		AIMove := g.FindBestMove(false, 2)
+		fmt.Println("This is the AI Move:", AIMove)
+		g.makeMove(AIMove.From.x, AIMove.From.y, AIMove.To.x, AIMove.To.y)
+		fmt.Println(g.Board)
+	}
 }
