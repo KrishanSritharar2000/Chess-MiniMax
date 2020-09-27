@@ -354,7 +354,7 @@ func getString(slice []Position) string {
 	return word
 }
 
-func main() {
+func main1() {
 	go pairPlayers()
 	// StartGame()
 	http.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("./website"))))

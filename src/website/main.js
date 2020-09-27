@@ -353,12 +353,7 @@ $(document).ready(function () {
             } else {
                 setImage(
                 newPiece,
-                "url('/static/imgs/" +
-                    newPiece.value.toLowerCase() +
-                    newPiece.getAttribute("name") +
-                    newPiece.getAttribute("class")[0] +
-                    ".png')"
-                );
+                "url('/static/imgs/" + newPiece.value.toLowerCase() + newPiece.getAttribute("name") + newPiece.getAttribute("class")[0] + ".png')");
             }
 
             //check undoing a castle
