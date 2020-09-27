@@ -8,6 +8,7 @@ $(document).ready(function () {
   var whiteTurn = true
   getCurrentPlayerTurn();
   var thisIsWhitePlayer = true
+  var calledMovFromOpp = false
   var gameMode = 0
   getPlayerColourAndMode()
   console.log("THIS IS THE PLAYER COLOUR:", thisIsWhitePlayer)
@@ -42,7 +43,6 @@ $(document).ready(function () {
 
   function swapTurn() {
     whiteTurn = !whiteTurn;
-    thisIsWhitePlayer = !thisIsWhitePlayer
     setPlayerText()
   }
 
@@ -159,6 +159,10 @@ $(document).ready(function () {
     makeFetch("col", "empty", "col", $(this))
   }
 
+  function getOpponentMove() {
+    makeFetch("opp", "empty", "opp", $(this))
+  }
+
   function movePiece(newPieceID, oldPieceID) {
     const newPiece = document.getElementById(newPieceID);
     const oldPiece = document.getElementById(oldPieceID);
@@ -184,7 +188,7 @@ $(document).ready(function () {
   function handleResponse(response, mode, clickedButton) {
     if (mode == "opt") {
       console.log("Operating mode: opt");
-      console.log("Reponse from server:", response, "length:", response.length);
+      console.log("Reponse from server for opt:", response, "length:", response.length);
       for (let i = 0; i < response.length; i += 2) {
         const htmlPiece = document.getElementById(response.substring(i, i + 2));
         console.log(
@@ -229,10 +233,11 @@ $(document).ready(function () {
       moveDisplayedPiece = clickedButton.prop("id");
     } else if (mode == "mov") {
       console.log("Operating mode: mov");
-      console.log("Reponse from server:", response, "length:", response.length);
+      console.log("Reponse from server mov:", response, "length:", response.length);
       var result = response.split(":")[1];
       if (result.substring(0, 4) === "true") {
         clearDisplayedMoves();
+        console.log("Before calling move piece:", clickedButton.prop("id"), moveDisplayedPiece)
         movePiece(clickedButton.prop("id"), moveDisplayedPiece);
         swapTurn();
       } else if (result.substring(0, 6) === "castle") {
@@ -247,6 +252,7 @@ $(document).ready(function () {
         swapTurn();
       } else if (result.substring(0, 5) === "false") {
         console.log("THAT WAS AN INVALID MOVE");
+        return
       } else if (result.substring(0, 9) === "enpassant") {
         clearDisplayedMoves();
         movePiece(clickedButton.prop("id"), moveDisplayedPiece);
@@ -274,6 +280,9 @@ $(document).ready(function () {
         return;
       }
       checkText(result.substring(result.length - 5, result.length) === "check");
+      if (!calledMovFromOpp && gameMode == 2) {
+        getOpponentMove()
+      }
     } else if (mode == "pwn") {
         if (response.substring(0, 4) == "true") {
             clearDisplayedMoves();
@@ -301,6 +310,9 @@ $(document).ready(function () {
         } else {
             console.log("ERROR HAS OCCURED, PIECE CANNOT BE PROMOTED")
         }
+        if (gameMode == 2) {
+          getOpponentMove()
+        }
     } else if (mode == "rst") {
         if (response.substring(0, 6) == "reload") {
             location.reload()
@@ -315,8 +327,11 @@ $(document).ready(function () {
             return;
         }
         checkText(response.substring(response.length - 5, response.length) === "check");
+        if (!thisIsWhitePlayer && gameMode == 2) {
+          getOpponentMove()
+        }
     } else if (mode == "bck") {
-        console.log("SERVER:", response)
+        console.log("SERVER bck:", response)
         if (response.substring(0, 4) === "true") {
 
             console.log("coord",response.substring(4,5), response.substring(5,6), response.substring(8,9) + response.substring(9,10))
@@ -347,11 +362,28 @@ $(document).ready(function () {
                 "\t" + message;
             }
         }
+        // if (!thisIsWhitePlayer) {
+        //   getOpponentMove()
+        // }
     } else if (mode == "col") {
       thisIsWhitePlayer = response.substring(0, 4) == "true"
       console.log(response, response.substring(0, 4), thisIsWhitePlayer)
       gameMode = parseInt(response.slice(response.length - 1))
       console.log("THIS IS THE GAME MODE", gameMode, response.slice(response.length - 1))
+      document.getElementById("plycol").innerHTML = thisIsWhitePlayer ? "WHITE" : "BLACK"
+      if (thisIsWhitePlayer != whiteTurn) {
+        getOpponentMove()
+      }
+    } else if (mode == "opp") {
+      console.log("Server opp:", response)
+      var respLen = response.length
+      moveDisplayedPiece = response.substring(respLen - 4, respLen - 2)
+      var movedTo = response.substring(respLen - 2, respLen)
+      console.log("MoveDisplayedPiece:", response.substring(respLen - 4, respLen - 2), "MovedTo", response.substring(respLen - 2, respLen))
+      console.log("Passing on response:", response.substring(0, respLen - 4))
+      calledMovFromOpp = true
+      handleResponse(response.substring(0, respLen - 4), "mov", $('#' + movedTo))
+      calledMovFromOpp = false
     }
   }
 

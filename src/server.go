@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 )
 
 var (
@@ -28,6 +27,7 @@ func pairPlayers() {
 		firstPlayer.blackPlayer = secondPlayer.userID
 		secondPlayer.whitePlayer = firstPlayer.userID
 		secondPlayer.blackPlayer = secondPlayer.userID
+		secondPlayer.Game = firstPlayer.Game
 	}
 }
 
@@ -36,6 +36,7 @@ type User struct {
 	GameMode int //0 local PvP, 1 AI, 2 Online PvP
 	userID string// ip address
 	whitePlayer, blackPlayer string //ip address of players 
+	lastMove string
 }
 
 func GetUserAndGame(r *http.Request) (*User, *Game) {
@@ -50,10 +51,24 @@ func GetUserAndGame(r *http.Request) (*User, *Game) {
 	if usr, ok := clients[ip]; ok {
 		return usr, usr.Game
 	}
-	clients[ip] = &User{&Game{Board{}, true, &MoveStack{}}, 0, ip, "", ""}
+	clients[ip] = &User{&Game{Board{}, true, &MoveStack{}}, 0, ip, "", "", ""}
 	game := clients[ip].Game
 	SetupBoard(&game.Board)
 	return clients[ip], game
+}
+
+func GetOpponent(u *User) (*User) {
+	if (u.GameMode == 2) {
+		var opp *User
+		if (u.userID == u.whitePlayer) {
+			opp, _ = clients[u.blackPlayer]
+		} else {
+			opp, _ = clients[u.whitePlayer]
+		}
+		return opp
+	}
+	log.Print("ERROR requesting opponent")
+	return nil
 }
 
 func SetGameMode(userIP string, gameMode int) {
@@ -93,13 +108,13 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Print("Error during executing: ", err)
 		}
-		if usr.whitePlayer != "" {
-			ClearOnlineGame(usr)
-		}
+		// if usr.whitePlayer != "" {
+		// 	ClearOnlineGame(usr)
+		// }
 	case "POST":
 		r.ParseMultipartForm(0)
 		message := r.FormValue("option")
-		fmt.Println("Client:", message)
+		fmt.Println("Client in HomePage POST:", message)
 		num, err := strconv.Atoi(message)
 		if err != nil {
 			log.Print("Error with message from Client: ", err)
@@ -108,8 +123,8 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Find Opponent")
 			SetGameMode(usr.userID, num)
 			session <- usr
-			for usr.whitePlayer == "" {}
-			clients[usr.blackPlayer].Game = usr.Game
+			for usr.blackPlayer == "" {}
+			fmt.Println("These are the users:", usr)
 		} else {
 			SetGameMode(usr.userID, num)
 		}
@@ -124,6 +139,9 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 // "pwn 00q" to promote pawn at 00 to a queen
 // "rst " to restart the game
 // "ply " to get player turn and check information
+// "bck " to undo turn
+// "col" to get player colour and game mode information 
+// "opp" to get opponent move
 func GamePage(w http.ResponseWriter, r *http.Request) {
 	usr, game := GetUserAndGame(r)
 	fmt.Println("IP:", r.RemoteAddr)
@@ -191,6 +209,7 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 			//check for en passant
 			if result && game.Board.Board[destX][destY].Symbol == "P" && abs(startY-destY) == 1 && enPassantCheckPiece == " " {
 				fmt.Fprintf(w, "Result:"+"enpassant"+strconv.Itoa(startX)+strconv.Itoa(destY)+checkText)
+				usr.lastMove = "Result:"+"enpassant"+strconv.Itoa(startX)+strconv.Itoa(destY)+checkText
 			} else if result && game.Board.Board[destX][destY].Symbol == "K" && abs(startY-destY) == 2 {
 				var rookLocation string
 				if game.Board.Board[destX][destY].IsBlack {
@@ -207,14 +226,16 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 				fmt.Fprintf(w, "Result:"+"castle"+rookLocation+checkText)
+				usr.lastMove = "Result:"+"castle"+rookLocation+checkText
 			} else if game.Board.promotePawn {
 				game.Board.promotePawn = false
 				fmt.Println("CHANGED PAWN PROMOTE BACK TO: ", game.Board.promotePawn)
 				fmt.Fprintf(w, "Result:"+"pwn"+checkText)
-
+				usr.lastMove = "Result:"+"pwn"+checkText
 			} else {
 				fmt.Println("Result:" + strconv.FormatBool(result) + checkText)
 				fmt.Fprintf(w, "Result:"+strconv.FormatBool(result)+checkText)
+				usr.lastMove = "Result:"+strconv.FormatBool(result)+checkText
 			}
 			fmt.Println("This is the move stack:", game.Moves)
 		case "pwn":
@@ -231,7 +252,6 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 		case "ply":
 			fmt.Fprintf(w, strconv.FormatBool(game.IsWhiteTurn)+getCheckMessage(game, true))
 		case "bck":
-			time.Sleep(time.Second*5)
 			result, move := game.undoTurn()
 			if result {
 				fmt.Println("Un did this move:", move)
@@ -240,13 +260,40 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 				fmt.Fprintf(w, "false")
 			}
 		case "col":
+			fmt.Println("User:", usr)
 			fmt.Println("Gamemode:", usr.GameMode)
 			if usr.GameMode == 2 {
+				fmt.Println("User:", usr)
 				fmt.Println("response:",strconv.FormatBool(usr.whitePlayer == usr.userID))
 				fmt.Fprintf(w, strconv.FormatBool(usr.whitePlayer == usr.userID) + strconv.Itoa(usr.GameMode))
 			} else {
 				fmt.Fprintf(w, "true" + strconv.Itoa(usr.GameMode))
 			}
+		case "opp":
+			// for {
+			// 	val, ok := usr.Game.Moves.Peek(); 
+			// 	if ok && val.From.Symbol != " " && val.From.IsBlack == !game.IsWhiteTurn {
+			// 		return
+			// 	}
+			// }
+			fmt.Println("GOT OPP REQUEST FROM", r.RemoteAddr)
+			fmt.Println("Current Turn:", game.IsWhiteTurn, usr.userID == usr.whitePlayer, usr.userID == usr.blackPlayer)
+			// for game.IsWhiteTurn != (usr.userID == usr.whitePlayer) {}
+			opp := GetOpponent(usr)
+			for opp.lastMove == "" || strings.Contains(opp.lastMove, "false") {}
+			lastMove := opp.lastMove
+			fmt.Println("This is the last move:", lastMove)
+			fmt.Println("This is the user:", usr)
+			fmt.Println("This is the opp:", opp)
+			opp.lastMove = ""
+			val, ok := usr.Game.Moves.Peek()
+			fmt.Println("This is the val and ok:", val, ok)
+			if ok {
+				fmt.Fprintf(w, lastMove + strconv.Itoa(val.From.x) + strconv.Itoa(val.From.y) + strconv.Itoa(val.To.x) + strconv.Itoa(val.To.y))
+			} else {
+				fmt.Fprintf(w, "false")
+			}
+			fmt.Println("This is the last move:", lastMove + strconv.Itoa(val.From.x) + strconv.Itoa(val.From.y) + strconv.Itoa(val.To.x) + strconv.Itoa(val.To.y))
 		default:
 			log.Print("HTTP Request Error")
 		}
