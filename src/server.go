@@ -229,7 +229,7 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 				}
 				fmt.Fprintf(w, "Result:"+"castle"+rookLocation+checkText)
 				usr.lastMove = "Result:"+"castle"+rookLocation+checkText
-			} else if game.Board.promotePawn {
+			} else if game.Board.promotePawn && usr.GameMode != 1 && usr.Game.IsWhiteTurn == true {
 				game.Board.promotePawn = false
 				fmt.Println("CHANGED PAWN PROMOTE BACK TO: ", game.Board.promotePawn)
 				fmt.Fprintf(w, "Result:"+"pwn"+checkText)
@@ -239,6 +239,10 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 				fmt.Fprintf(w, "Result:"+strconv.FormatBool(result)+checkText)
 				usr.lastMove = "Result:"+strconv.FormatBool(result)+checkText
 			}
+			if game.Board.promotePawn {
+				game.Board.promotePawn = false
+			}
+
 			fmt.Println("This is the move stack:", game.Moves)
 		case "pwn":
 			x, y := int(rest[0])-int('0'), int(rest[1])-int('0')

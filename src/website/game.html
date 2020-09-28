@@ -7,6 +7,7 @@
     <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"> -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/css/mdb.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">
     <link href="/static/styles.css" rel="stylesheet" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="/static/main.js" defer></script>
@@ -21,10 +22,30 @@
       <button class="btn btn-primary btn-rounded waves-effect" id="undo" type="button">Undo Move</button>
       <button class="btn btn-primary btn-rounded waves-effect" id="plycol" type="button"></button>
 
-      <!-- <button class="btn btn-primary btn-rounded waves-effect" type="button" data-toggle="modal" data-target="#piecePromoteModal">Toggle Piece Promotion</button> -->
+      <!-- <button class="btn btn-primary btn-rounded waves-effect" type="button" data-toggle="modal" data-target="#takeBackMoveModal">Take Back</button> -->
     
     </form>
 
+    <div class="modal fade right" id="takeBackMoveModal" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-side modal-top-right modal-notify modal-success" role="document">
+        <div class="modal-content">
+          <div class="modal-body">
+            <div class="text-center">
+              <i class="fas fa-chess fa-4x mb-3 animated rotateIn"></i>
+              <p>Your opponent has request a takeback</p>
+            </div>
+          </div>
+          <div class="modal-footer justify-content-center">
+            <a type="button" class="btn btn-success waves-effect waves-light animated fadeInRight" data-dismiss="modal">Accept
+              <i class="fas fa-undo ml-2 text-white"></i>
+            </a>
+            <a type="button" class="btn btn-outline-success waves-effect animated fadeInRight" data-dismiss="modal">Reject
+              <i class="fas fa-times ml-2 text-red"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div class="modal fade" id="piecePromoteModal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="piecePromote" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
