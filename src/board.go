@@ -375,7 +375,6 @@ func (p Piece) generatePossibleMoves(b *Board) []Position {
 	allowedMoves := make([]Position, 0)
 	// fmt.Println("XY", p.x, p.y, newX, newY)
 	// fmt.Println("WhiteKing", b.kingW, "BlackKing", b.kingB)
-	fmt.Println("THIS IS THE X AND Y", p.x, p.y)
 	switch p.Symbol {
 	case "P":
 		// If pawn in start position advance 2

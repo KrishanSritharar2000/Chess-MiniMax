@@ -91,9 +91,14 @@ func (g *Game) FindBestMove(forWhite bool, depth int) MovePair {
 	}
 	moves := g.GetAvailableMoves(forWhite)
 	for _, move := range moves {
-		g.makeMove(move.From.x, move.From.y, move.To.x, move.To.y)
-		currValue = g.Minimax(0, depth, !forWhite)
-		g.undoTurn()
+		if g.makeMove(move.From.x, move.From.y, move.To.x, move.To.y) {
+			currValue = g.Minimax(0, depth, !forWhite)
+			g.undoTurn()
+		} else {
+			fmt.Println(g.Board)
+			fmt.Println("Turn:", g.IsWhiteTurn, move.From.x, move.From.y, move.To.x, move.To.y)
+
+		}
 		if (forWhite && currValue <= bestValue) || (!forWhite && currValue >= bestValue) {
 			if currValue == bestValue {
 				bestMoves = append(bestMoves, move)
@@ -103,11 +108,11 @@ func (g *Game) FindBestMove(forWhite bool, depth int) MovePair {
 				bestMoves = make([]MovePair, 0)
 				bestMoves = append(bestMoves, move)
 			}
-			
 		}
 	}
 	fmt.Println("This is the bestValue:", bestValue)
 	fmt.Println("These are the bestMoves:", bestMoves)
+	fmt.Println("Is it whites turn:", g.IsWhiteTurn)
 	if len(bestMoves) > 1 {
 		return bestMoves[randomNumbers.Intn(len(bestMoves))]
 	}
@@ -131,7 +136,6 @@ func Min(a, b int) int {
 
 //White is the maximising player
 func (g *Game) Minimax(depth, maxDepth int, isMaxTurn bool) int {
-	fmt.Println("In Minimax")
 	value := g.GetValue(isMaxTurn)
 
 	if value == 1 {
@@ -147,36 +151,54 @@ func (g *Game) Minimax(depth, maxDepth int, isMaxTurn bool) int {
 	}
 
 	if depth == maxDepth {
-		return g.getValueOfPiecesOnBoard(isMaxTurn)
+		if isMaxTurn {
+			return g.getValueOfPiecesOnBoard(isMaxTurn) - depth
+		}
+		return depth - g.getValueOfPiecesOnBoard(!isMaxTurn)
 	}
 
 	var currValue int
 	if isMaxTurn {
 		// best = -1000000
+		currValue = -maxScore
 		moves := g.GetAvailableMoves(true)
 		for _, move := range moves {
 			//Make move
-			g.makeMove(move.From.x, move.From.y, move.To.x, move.To.y)
-			//Recurse
-			currValue = Max(currValue, g.Minimax(depth + 1, maxDepth, false))
-			//Undo move
-			g.undoTurn()
+			if g.makeMove(move.From.x, move.From.y, move.To.x, move.To.y) {
+				//Recurse
+				currValue= Max(currValue, g.Minimax(depth + 1, maxDepth, false))
+				//Undo move
+				g.undoTurn()
+			} else {
+				fmt.Println(g.Board)
+				fmt.Println(moves)
+				fmt.Println("Turn:", g.IsWhiteTurn, move.From.x, move.From.y, move.To.x, move.To.y)
+			}					
 		}
 	} else {
 		// best = 1000000
+		currValue = maxScore
 		moves := g.GetAvailableMoves(false)
 		for _, move := range moves {
 			//Make move
-			g.makeMove(move.From.x, move.From.y, move.To.x, move.To.y)
-			//Recurse
-			currValue = Min(currValue, g.Minimax(depth + 1, maxDepth, true))
-			//Undo move
-			g.undoTurn()
+			if g.makeMove(move.From.x, move.From.y, move.To.x, move.To.y) {
+				//Recurse
+				currValue= Min(currValue, g.Minimax(depth + 1, maxDepth, true))
+				//Undo move
+				g.undoTurn()
+			} else {	
+				fmt.Println(g.Board)
+				fmt.Println(moves)
+				fmt.Println("Turn:", g.IsWhiteTurn, move.From.x, move.From.y, move.To.x, move.To.y)
+			}
 		}
 	}
 	return currValue  
 }
 
+type quad struct {
+	a,b,c,d int
+}
 func main() {
 	g := Game{Board{}, true, &MoveStack{}}
 	SetupBoard(&g.Board)
@@ -184,17 +206,26 @@ func main() {
 	fmt.Println("Value:", g.GetValue(true))
 	fmt.Println(g.Board)
 	reader := bufio.NewReader(os.Stdin)
+	// ms := []quad{quad{1,3,3,3},quad{1,4,3,4},quad{1,0,2,0},quad{1,7,2,7}}
+	counter := 0
 	for {
 		for {
+			g.GetAvailableMoves(false)
 			fmt.Println(g.Board)
 			result := g.makeMove(g.getTurn(*reader))
+			// ms[counter].a,ms[counter].b,ms[counter].c,ms[counter].d)
 			if result {
 				break
 			}
 		}
 		AIMove := g.FindBestMove(false, 2)
 		fmt.Println("This is the AI Move:", AIMove)
-		g.makeMove(AIMove.From.x, AIMove.From.y, AIMove.To.x, AIMove.To.y)
+		if !g.makeMove(AIMove.From.x, AIMove.From.y, AIMove.To.x, AIMove.To.y) {
+			fmt.Println(g.Board)
+			fmt.Println(AIMove.From.x, AIMove.From.y, AIMove.To.x, AIMove.To.y)
+			return
+		}
 		fmt.Println(g.Board)
+		counter++
 	}
 }

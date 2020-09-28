@@ -85,6 +85,15 @@ func (g *Game) undoTurn() (bool, Move) {
 		g.Board.Board[endPiece.x][endPiece.y] = endPiece
 		g.nextTurn()
 
+		//replace king coords 
+		if startPiece.Symbol == "K" {
+			if startPiece.IsBlack {
+				g.Board.kingB = startPiece
+			} else {
+				g.Board.kingW = startPiece
+			}
+		}
+
 		//check castle
 		if startPiece.Symbol == "K" && abs(startPiece.y - endPiece.y) == 2 {
 			var rookX int
@@ -126,6 +135,8 @@ func (g *Game) makeMove(startX, startY, endX, endY int) bool {
 
 	startPiece := g.Board.Board[startX][startY]	
 	if startPiece.Symbol == " " {
+		fmt.Println(g.Board)
+		fmt.Println(startPiece)
 		fmt.Println("There is no piece there!")
 		return false
 	} else if startPiece.IsBlack == g.IsWhiteTurn {
