@@ -136,19 +136,19 @@ func Min(a, b int) int {
 
 //White is the maximising player
 func (g *Game) Minimax(isMaxTurn bool, depth, maxDepth, alpha, beta int, compCounter *int) int {
-	value := g.GetValue(isMaxTurn)
+	value := g.GetValue(!isMaxTurn)
 	*compCounter++
 
 	if value == 1 {
 		if isMaxTurn {
-			return maxScore - depth
+			return depth - maxScore
 		}
-		return depth - maxScore
+		return maxScore - depth
 	} else if value == 2 {
 		if isMaxTurn {
-			return ((3*maxScore)/4) - depth
+			return depth - ((maxScore)/2)
 		}
-		return depth - ((3*maxScore)/4)
+		return ((maxScore)/2) - depth
 	}
 
 	if depth == maxDepth {
@@ -157,7 +157,8 @@ func (g *Game) Minimax(isMaxTurn bool, depth, maxDepth, alpha, beta int, compCou
 		// }
 		// return g.getValueOfPiecesOnBoard(!isMaxTurn) - depth
 		if isMaxTurn {
-			return g.getValueOfPiecesOnBoard(isMaxTurn) - g.getValueOfPiecesOnBoard(!isMaxTurn) + depth
+			// return g.getValueOfPiecesOnBoard(isMaxTurn) - g.getValueOfPiecesOnBoard(!isMaxTurn) + depth
+			return g.getValueOfPiecesOnBoard(isMaxTurn) - g.getValueOfPiecesOnBoard(!isMaxTurn) - depth
 		}
 		return (g.getValueOfPiecesOnBoard(!isMaxTurn) - g.getValueOfPiecesOnBoard(isMaxTurn)) - depth
 	}
@@ -201,7 +202,6 @@ func (g *Game) Minimax(isMaxTurn bool, depth, maxDepth, alpha, beta int, compCou
 				if beta <= alpha {
 					break
 				}
-
 			} else {	
 				fmt.Println(g.Board)
 				fmt.Println(moves)
@@ -212,10 +212,6 @@ func (g *Game) Minimax(isMaxTurn bool, depth, maxDepth, alpha, beta int, compCou
 	return currValue  
 }
 
-type quad struct {
-	a,b,c,d int
-}
-
 func main() {
 	g := Game{Board{}, true, &MoveStack{}}
 	SetupBoard(&g.Board)
@@ -223,14 +219,12 @@ func main() {
 	fmt.Println("Value:", g.GetValue(true))
 	fmt.Println(g.Board)
 	reader := bufio.NewReader(os.Stdin)
-	// ms := []quad{quad{1,3,3,3},quad{1,4,3,4},quad{1,0,2,0},quad{1,7,2,7}}
 	counter := 0
 	for {
 		for {
 			g.GetAvailableMoves(false)
 			fmt.Println(g.Board)
 			result := g.makeMove(g.getTurn(*reader))
-			// ms[counter].a,ms[counter].b,ms[counter].c,ms[counter].d)
 			if result {
 				break
 			}
