@@ -257,7 +257,16 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 			result, move := game.undoTurn()
 			if result {
 				fmt.Println("Un did this move:", move)
-				fmt.Fprintf(w, "true" + strconv.Itoa(move.From.x) + strconv.Itoa(move.From.y) + string(move.From.Symbol) + string(strconv.FormatBool(move.From.IsBlack)[0]) + strconv.Itoa(move.To.x) + strconv.Itoa(move.To.y) + string(move.To.Symbol) + string(strconv.FormatBool(move.To.IsBlack)[0]))
+				if usr.GameMode == 1 {
+					result2, move2 := game.undoTurn()
+					if result2 {
+						fmt.Fprintf(w, "true" + strconv.Itoa(move.From.x) + strconv.Itoa(move.From.y) + string(move.From.Symbol) + string(strconv.FormatBool(move.From.IsBlack)[0]) + strconv.Itoa(move.To.x) + strconv.Itoa(move.To.y) + string(move.To.Symbol) + string(strconv.FormatBool(move.To.IsBlack)[0]) + strconv.Itoa(move2.From.x) + strconv.Itoa(move2.From.y) + string(move2.From.Symbol) + string(strconv.FormatBool(move2.From.IsBlack)[0]) + strconv.Itoa(move2.To.x) + strconv.Itoa(move2.To.y) + string(move2.To.Symbol) + string(strconv.FormatBool(move2.To.IsBlack)[0]) + "ai")
+					} else {
+						fmt.Fprintf(w, "false")
+					}
+				} else {
+					fmt.Fprintf(w, "true" + strconv.Itoa(move.From.x) + strconv.Itoa(move.From.y) + string(move.From.Symbol) + string(strconv.FormatBool(move.From.IsBlack)[0]) + strconv.Itoa(move.To.x) + strconv.Itoa(move.To.y) + string(move.To.Symbol) + string(strconv.FormatBool(move.To.IsBlack)[0]))
+				}
 				
 			} else {
 				fmt.Fprintf(w, "false")

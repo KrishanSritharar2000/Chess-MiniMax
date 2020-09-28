@@ -391,7 +391,11 @@ $(document).ready(function () {
             }
 
             swapTurn()
-        } else {
+        if (response.substring(response.length - 2, response.length) == "ai") {
+          handleResponse("true"+response.substring(response.length - 10, response.length - 2), "bck", clickedButton)
+        }
+        
+      } else {
             var message = "No moves left to Undo"
             if (!document.getElementById("playerText").innerHTML.includes(message)) {
                 document.getElementById("playerText").innerHTML =
