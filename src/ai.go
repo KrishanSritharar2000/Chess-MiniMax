@@ -212,14 +212,13 @@ func (g *Game) Minimax(isMaxTurn bool, depth, maxDepth, alpha, beta int, compCou
 	return currValue  
 }
 
-func main() {
+func main2() {
 	g := Game{Board{}, true, &MoveStack{}}
 	SetupBoard(&g.Board)
 	g.GetAvailableMoves(true)
 	fmt.Println("Value:", g.GetValue(true))
 	fmt.Println(g.Board)
 	reader := bufio.NewReader(os.Stdin)
-	counter := 0
 	for {
 		for {
 			g.GetAvailableMoves(false)
@@ -241,6 +240,5 @@ func main() {
 		}
 		fmt.Println(g.Board)
 		fmt.Println("Time Taken:", time.Since(start), "seconds")
-		counter++
 	}
 }

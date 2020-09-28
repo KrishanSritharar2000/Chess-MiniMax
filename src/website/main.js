@@ -163,6 +163,10 @@ $(document).ready(function () {
     makeFetch("opp", "empty", "opp", $(this))
   }
 
+  function getAIMove() {
+    makeFetch("aim", "empty", "opp", $(this))
+  }
+
   function movePiece(newPieceID, oldPieceID) {
     const newPiece = document.getElementById(newPieceID);
     const oldPiece = document.getElementById(oldPieceID);
@@ -289,6 +293,8 @@ $(document).ready(function () {
       checkText(result.substring(result.length - 5, result.length) === "check");
       if (!calledMovFromOpp && gameMode == 2) {
         getOpponentMove()
+      } else if (!calledMovFromOpp && gameMode == 1) {
+        getAIMove()
       }
     } else if (mode == "pwn") {
         if (response.substring(0, 4) == "true") {
@@ -402,8 +408,10 @@ $(document).ready(function () {
       gameMode = parseInt(response.slice(response.length - 1))
       console.log("THIS IS THE GAME MODE", gameMode, response.slice(response.length - 1))
       document.getElementById("plycol").innerHTML = thisIsWhitePlayer ? "WHITE" : "BLACK"
-      if (thisIsWhitePlayer != whiteTurn) {
+      if (gameMode == 2 && thisIsWhitePlayer != whiteTurn) {
         getOpponentMove()
+      } else if (gameMode == 1 && !thisIsWhitePlayer) {
+        getAIMove()
       }
     } else if (mode == "opp") {
       console.log("Server opp:", response)

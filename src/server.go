@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var (
@@ -142,6 +143,7 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 // "bck " to undo turn
 // "col" to get player colour and game mode information 
 // "opp" to get opponent move
+// "aim" to get AI move
 func GamePage(w http.ResponseWriter, r *http.Request) {
 	usr, game := GetUserAndGame(r)
 	fmt.Println("IP:", r.RemoteAddr)
@@ -267,6 +269,9 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 				fmt.Println("User:", usr)
 				fmt.Println("response:",strconv.FormatBool(usr.whitePlayer == usr.userID))
 				fmt.Fprintf(w, strconv.FormatBool(usr.whitePlayer == usr.userID) + strconv.Itoa(usr.GameMode))
+			} else if usr.GameMode == 1 {
+				//change later
+				fmt.Fprintf(w, "true" + strconv.Itoa(usr.GameMode))	
 			} else {
 				fmt.Fprintf(w, "true" + strconv.Itoa(usr.GameMode))
 			}
@@ -295,6 +300,16 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 				fmt.Fprintf(w, "false")
 			}
 			fmt.Println("This is the last move:", lastMove + strconv.Itoa(val.From.x) + strconv.Itoa(val.From.y) + strconv.Itoa(val.To.x) + strconv.Itoa(val.To.y))
+		
+		case "aim":
+			fmt.Println("GOT AIM REQUEST FROM", r.RemoteAddr)
+			start := time.Now()
+			moveCounter := 0
+			for usr.Game.IsWhiteTurn == true {}
+			AIMove := usr.Game.FindBestMove(false, 3, &moveCounter)
+			usr.Game.makeMove(AIMove.From.x, AIMove.From.y, AIMove.To.x, AIMove.To.y)
+			fmt.Println("Time Taken:", time.Since(start), "seconds")
+			fmt.Fprintf(w, "Result:true" + getCheckMessage(usr.Game, true) + strconv.Itoa(AIMove.From.x) + strconv.Itoa(AIMove.From.y) + strconv.Itoa(AIMove.To.x) + strconv.Itoa(AIMove.To.y))
 		default:
 			log.Print("HTTP Request Error")
 		}
@@ -354,7 +369,7 @@ func getString(slice []Position) string {
 	return word
 }
 
-func main1() {
+func main() {
 	go pairPlayers()
 	// StartGame()
 	http.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("./website"))))
