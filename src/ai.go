@@ -85,9 +85,9 @@ func (g *Game) FindBestMove(forWhite bool, depth int) MovePair {
 	bestMoves := make([]MovePair, 0)
 	var currValue, bestValue int
 	if forWhite {
-		bestValue = maxScore
-	} else {
 		bestValue = -maxScore
+	} else {
+		bestValue = maxScore
 	}
 	moves := g.GetAvailableMoves(forWhite)
 	for _, move := range moves {
@@ -99,7 +99,7 @@ func (g *Game) FindBestMove(forWhite bool, depth int) MovePair {
 			fmt.Println("Turn:", g.IsWhiteTurn, move.From.x, move.From.y, move.To.x, move.To.y)
 
 		}
-		if (forWhite && currValue <= bestValue) || (!forWhite && currValue >= bestValue) {
+		if (forWhite && currValue >= bestValue) || (!forWhite && currValue <= bestValue) {
 			if currValue == bestValue {
 				bestMoves = append(bestMoves, move)
 			} else {
@@ -140,21 +140,25 @@ func (g *Game) Minimax(depth, maxDepth int, isMaxTurn bool) int {
 
 	if value == 1 {
 		if isMaxTurn {
-			return depth - maxScore
+			return maxScore - depth
 		}
-		return maxScore - depth
+		return depth - maxScore
 	} else if value == 2 {
 		if isMaxTurn {
-			return depth - ((3*maxScore)/4)
+			return ((3*maxScore)/4) - depth
 		}
-		return ((3*maxScore)/4) - depth
+		return depth - ((3*maxScore)/4)
 	}
 
 	if depth == maxDepth {
+		// if isMaxTurn {
+		// 	return depth - g.getValueOfPiecesOnBoard(isMaxTurn)
+		// }
+		// return g.getValueOfPiecesOnBoard(!isMaxTurn) - depth
 		if isMaxTurn {
-			return g.getValueOfPiecesOnBoard(isMaxTurn) - depth
+			return g.getValueOfPiecesOnBoard(isMaxTurn) - g.getValueOfPiecesOnBoard(!isMaxTurn) + depth
 		}
-		return depth - g.getValueOfPiecesOnBoard(!isMaxTurn)
+		return (g.getValueOfPiecesOnBoard(!isMaxTurn) - g.getValueOfPiecesOnBoard(isMaxTurn)) - depth
 	}
 
 	var currValue int
@@ -166,8 +170,9 @@ func (g *Game) Minimax(depth, maxDepth int, isMaxTurn bool) int {
 			//Make move
 			if g.makeMove(move.From.x, move.From.y, move.To.x, move.To.y) {
 				//Recurse
-				currValue= Max(currValue, g.Minimax(depth + 1, maxDepth, false))
+				currValue = Max(currValue, g.Minimax(depth + 1, maxDepth, false))
 				//Undo move
+				fmt.Println(currValue, move)
 				g.undoTurn()
 			} else {
 				fmt.Println(g.Board)
@@ -185,6 +190,7 @@ func (g *Game) Minimax(depth, maxDepth int, isMaxTurn bool) int {
 				//Recurse
 				currValue= Min(currValue, g.Minimax(depth + 1, maxDepth, true))
 				//Undo move
+				fmt.Println(currValue, move)
 				g.undoTurn()
 			} else {	
 				fmt.Println(g.Board)
@@ -218,7 +224,8 @@ func main() {
 				break
 			}
 		}
-		AIMove := g.FindBestMove(false, 2)
+		start := time.Now()
+		AIMove := g.FindBestMove(false, 3)
 		fmt.Println("This is the AI Move:", AIMove)
 		if !g.makeMove(AIMove.From.x, AIMove.From.y, AIMove.To.x, AIMove.To.y) {
 			fmt.Println(g.Board)
@@ -226,6 +233,7 @@ func main() {
 			return
 		}
 		fmt.Println(g.Board)
+		fmt.Println("Time Taken:", time.Since(start), "seconds")
 		counter++
 	}
 }
