@@ -81,7 +81,7 @@ func (g *Game) GetAvailableMoves(forWhite bool) []MovePair {
 	return moves
 }
 
-func (g *Game) FindBestMove(forWhite bool, depth int) MovePair {
+func (g *Game) FindBestMove(forWhite bool, depth int, compCounter *int) MovePair {
 	bestMoves := make([]MovePair, 0)
 	var currValue, bestValue int
 	if forWhite {
@@ -92,7 +92,7 @@ func (g *Game) FindBestMove(forWhite bool, depth int) MovePair {
 	moves := g.GetAvailableMoves(forWhite)
 	for _, move := range moves {
 		if g.makeMove(move.From.x, move.From.y, move.To.x, move.To.y) {
-			currValue = g.Minimax(0, depth, !forWhite)
+			currValue = g.Minimax(!forWhite, 0, depth, -1000000, 1000000, compCounter)
 			g.undoTurn()
 		} else {
 			fmt.Println(g.Board)
@@ -135,8 +135,9 @@ func Min(a, b int) int {
 }
 
 //White is the maximising player
-func (g *Game) Minimax(depth, maxDepth int, isMaxTurn bool) int {
+func (g *Game) Minimax(isMaxTurn bool, depth, maxDepth, alpha, beta int, compCounter *int) int {
 	value := g.GetValue(isMaxTurn)
+	*compCounter++
 
 	if value == 1 {
 		if isMaxTurn {
@@ -163,17 +164,21 @@ func (g *Game) Minimax(depth, maxDepth int, isMaxTurn bool) int {
 
 	var currValue int
 	if isMaxTurn {
-		// best = -1000000
+		best := -1000000
 		currValue = -maxScore
 		moves := g.GetAvailableMoves(true)
 		for _, move := range moves {
 			//Make move
 			if g.makeMove(move.From.x, move.From.y, move.To.x, move.To.y) {
 				//Recurse
-				currValue = Max(currValue, g.Minimax(depth + 1, maxDepth, false))
+				currValue = g.Minimax(false, depth + 1, maxDepth, alpha, beta, compCounter)
 				//Undo move
-				fmt.Println(currValue, move)
 				g.undoTurn()
+				best = Max(best, currValue)
+				alpha = Max(alpha, currValue) 
+				if beta <= alpha {
+					break
+				}
 			} else {
 				fmt.Println(g.Board)
 				fmt.Println(moves)
@@ -181,17 +186,22 @@ func (g *Game) Minimax(depth, maxDepth int, isMaxTurn bool) int {
 			}					
 		}
 	} else {
-		// best = 1000000
+		best := 1000000
 		currValue = maxScore
 		moves := g.GetAvailableMoves(false)
 		for _, move := range moves {
 			//Make move
 			if g.makeMove(move.From.x, move.From.y, move.To.x, move.To.y) {
 				//Recurse
-				currValue= Min(currValue, g.Minimax(depth + 1, maxDepth, true))
+				currValue = g.Minimax(true, depth + 1, maxDepth, alpha, beta, compCounter)
 				//Undo move
-				fmt.Println(currValue, move)
 				g.undoTurn()
+				best = Min(best, currValue)
+				beta = Min(beta, currValue)
+				if beta <= alpha {
+					break
+				}
+
 			} else {	
 				fmt.Println(g.Board)
 				fmt.Println(moves)
@@ -205,6 +215,7 @@ func (g *Game) Minimax(depth, maxDepth int, isMaxTurn bool) int {
 type quad struct {
 	a,b,c,d int
 }
+
 func main() {
 	g := Game{Board{}, true, &MoveStack{}}
 	SetupBoard(&g.Board)
@@ -225,8 +236,10 @@ func main() {
 			}
 		}
 		start := time.Now()
-		AIMove := g.FindBestMove(false, 3)
+		moveCounter := 0
+		AIMove := g.FindBestMove(false, 3, &moveCounter)
 		fmt.Println("This is the AI Move:", AIMove)
+		fmt.Println("This is how many comparisons it took:", moveCounter)
 		if !g.makeMove(AIMove.From.x, AIMove.From.y, AIMove.To.x, AIMove.To.y) {
 			fmt.Println(g.Board)
 			fmt.Println(AIMove.From.x, AIMove.From.y, AIMove.To.x, AIMove.To.y)
