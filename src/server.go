@@ -38,6 +38,9 @@ type User struct {
 	userID string// ip address
 	whitePlayer, blackPlayer string //ip address of players 
 	lastMove string
+	undoMoveRequested string
+	lastMadeMove, secondLastMove *Move
+
 }
 
 func GetUserAndGame(r *http.Request) (*User, *Game) {
@@ -52,7 +55,7 @@ func GetUserAndGame(r *http.Request) (*User, *Game) {
 	if usr, ok := clients[ip]; ok {
 		return usr, usr.Game
 	}
-	clients[ip] = &User{&Game{Board{}, true, &MoveStack{}}, 0, ip, "", "", ""}
+	clients[ip] = &User{&Game{Board{}, true, &MoveStack{}}, 0, ip, "", "", "", "", &Move{}, &Move{}}
 	game := clients[ip].Game
 	SetupBoard(&game.Board)
 	return clients[ip], game
@@ -258,12 +261,32 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 		case "ply":
 			fmt.Fprintf(w, strconv.FormatBool(game.IsWhiteTurn)+getCheckMessage(game, true))
 		case "bck":
+			if usr.GameMode == 2 {
+				fmt.Println("Requested undo move from:", r.RemoteAddr)
+				usr.undoMoveRequested = "true"
+				opp := GetOpponent(usr)
+				for opp.undoMoveRequested == "" {}
+				opp.undoMoveRequested = ""
+				if usr.undoMoveRequested == "rtb" {
+					fmt.Fprintf(w, "reject")
+					usr.undoMoveRequested = ""
+					return
+				}
+				usr.undoMoveRequested = ""
+				fmt.Println(r.RemoteAddr, "take back accepted by opponent")
+				move := usr.lastMadeMove
+				move2 := usr.secondLastMove
+				fmt.Fprintf(w, "true" + strconv.Itoa(move.From.x) + strconv.Itoa(move.From.y) + string(move.From.Symbol) + string(strconv.FormatBool(move.From.IsBlack)[0]) + strconv.Itoa(move.To.x) + strconv.Itoa(move.To.y) + string(move.To.Symbol) + string(strconv.FormatBool(move.To.IsBlack)[0]) + strconv.Itoa(move2.From.x) + strconv.Itoa(move2.From.y) + string(move2.From.Symbol) + string(strconv.FormatBool(move2.From.IsBlack)[0]) + strconv.Itoa(move2.To.x) + strconv.Itoa(move2.To.y) + string(move2.To.Symbol) + string(strconv.FormatBool(move2.To.IsBlack)[0]) + "ac")
+				usr.lastMadeMove = &Move{}
+				usr.secondLastMove = &Move{}
+				return
+			}
 			result, move := game.undoTurn()
 			if result {
 				fmt.Println("Un did this move:", move)
 				if usr.GameMode == 1 {
 					result2, move2 := game.undoTurn()
-					if result2 {
+					if result2 { 
 						fmt.Fprintf(w, "true" + strconv.Itoa(move.From.x) + strconv.Itoa(move.From.y) + string(move.From.Symbol) + string(strconv.FormatBool(move.From.IsBlack)[0]) + strconv.Itoa(move.To.x) + strconv.Itoa(move.To.y) + string(move.To.Symbol) + string(strconv.FormatBool(move.To.IsBlack)[0]) + strconv.Itoa(move2.From.x) + strconv.Itoa(move2.From.y) + string(move2.From.Symbol) + string(strconv.FormatBool(move2.From.IsBlack)[0]) + strconv.Itoa(move2.To.x) + strconv.Itoa(move2.To.y) + string(move2.To.Symbol) + string(strconv.FormatBool(move2.To.IsBlack)[0]) + "ai")
 					} else {
 						fmt.Fprintf(w, "false")
@@ -299,21 +322,25 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Current Turn:", game.IsWhiteTurn, usr.userID == usr.whitePlayer, usr.userID == usr.blackPlayer)
 			// for game.IsWhiteTurn != (usr.userID == usr.whitePlayer) {}
 			opp := GetOpponent(usr)
-			for opp.lastMove == "" || strings.Contains(opp.lastMove, "false") {}
-			lastMove := opp.lastMove
-			fmt.Println("This is the last move:", lastMove)
-			fmt.Println("This is the user:", usr)
-			fmt.Println("This is the opp:", opp)
-			opp.lastMove = ""
-			val, ok := usr.Game.Moves.Peek()
-			fmt.Println("This is the val and ok:", val, ok)
-			if ok {
-				fmt.Fprintf(w, lastMove + strconv.Itoa(val.From.x) + strconv.Itoa(val.From.y) + strconv.Itoa(val.To.x) + strconv.Itoa(val.To.y))
+			for (opp.lastMove == "" || strings.Contains(opp.lastMove, "false")) && opp.undoMoveRequested == "" {}
+			if opp.undoMoveRequested == "" {
+				lastMove := opp.lastMove
+				fmt.Println("This is the last move:", lastMove)
+				fmt.Println("This is the user:", usr)
+				fmt.Println("This is the opp:", opp)
+				opp.lastMove = ""
+				val, ok := usr.Game.Moves.Peek()
+				fmt.Println("This is the val and ok:", val, ok)
+				if ok {
+					fmt.Fprintf(w, lastMove + strconv.Itoa(val.From.x) + strconv.Itoa(val.From.y) + strconv.Itoa(val.To.x) + strconv.Itoa(val.To.y))
+				} else {
+					fmt.Fprintf(w, "false")
+				}
+				fmt.Println("This is the last move:", lastMove + strconv.Itoa(val.From.x) + strconv.Itoa(val.From.y) + strconv.Itoa(val.To.x) + strconv.Itoa(val.To.y))
 			} else {
-				fmt.Fprintf(w, "false")
+				fmt.Println("Asked ", r.RemoteAddr, "for modal")
+				fmt.Fprintf(w, "bck")
 			}
-			fmt.Println("This is the last move:", lastMove + strconv.Itoa(val.From.x) + strconv.Itoa(val.From.y) + strconv.Itoa(val.To.x) + strconv.Itoa(val.To.y))
-		
 		case "aim":
 			fmt.Println("GOT AIM REQUEST FROM", r.RemoteAddr)
 			start := time.Now()
@@ -323,6 +350,25 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 			usr.Game.makeMove(AIMove.From.x, AIMove.From.y, AIMove.To.x, AIMove.To.y)
 			fmt.Println("Time Taken:", time.Since(start), "seconds")
 			fmt.Fprintf(w, "Result:true" + getCheckMessage(usr.Game, true) + strconv.Itoa(AIMove.From.x) + strconv.Itoa(AIMove.From.y) + strconv.Itoa(AIMove.To.x) + strconv.Itoa(AIMove.To.y))
+		case "atb":
+			fmt.Println(r.RemoteAddr + "accepted")
+			opp := GetOpponent(usr)
+			//Assumes there are at least two moves on the move stack
+			_, move := game.undoTurn()
+			_, move2 := game.undoTurn()
+			opp.lastMadeMove = &move
+			opp.secondLastMove = &move2
+			fmt.Println("These are the moves", move, move2)
+			opp.undoMoveRequested = "atb"
+			usr.undoMoveRequested = "answered"
+			fmt.Fprintf(w, "true" + strconv.Itoa(move.From.x) + strconv.Itoa(move.From.y) + string(move.From.Symbol) + string(strconv.FormatBool(move.From.IsBlack)[0]) + strconv.Itoa(move.To.x) + strconv.Itoa(move.To.y) + string(move.To.Symbol) + string(strconv.FormatBool(move.To.IsBlack)[0]) + strconv.Itoa(move2.From.x) + strconv.Itoa(move2.From.y) + string(move2.From.Symbol) + string(strconv.FormatBool(move2.From.IsBlack)[0]) + strconv.Itoa(move2.To.x) + strconv.Itoa(move2.To.y) + string(move2.To.Symbol) + string(strconv.FormatBool(move2.To.IsBlack)[0]) + "ac")
+			undoMove(w, usr, game, "ac")
+		case "rtb":
+			fmt.Println(r.RemoteAddr + "rejected")
+			opp := GetOpponent(usr)
+			opp.undoMoveRequested = "rtb"
+			usr.undoMoveRequested = "answered"
+			fmt.Fprintf(w, "reject")
 		default:
 			log.Print("HTTP Request Error")
 		}
@@ -330,6 +376,10 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 		// respond to client's request
 		// fmt.Fprintf(w, "Server: %s \n", message+" | "+time.Now().Format(time.RFC3339))
 	}
+}
+
+func undoMove(w http.ResponseWriter, usr *User, game *Game, gameMode2acceptedText string) {
+
 }
 
 func getCheckMessage(game *Game, result bool) string {

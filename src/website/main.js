@@ -9,6 +9,7 @@ $(document).ready(function () {
   getCurrentPlayerTurn();
   var thisIsWhitePlayer = true
   var calledMovFromOpp = false
+  var calledFromBck = false
   var gameMode = 0
   getPlayerColourAndMode()
   console.log("THIS IS THE PLAYER COLOUR:", thisIsWhitePlayer)
@@ -392,17 +393,27 @@ $(document).ready(function () {
 
             swapTurn()
         if (response.substring(response.length - 2, response.length) == "ai") {
+          calledFromBck = true
           handleResponse("true"+response.substring(response.length - 10, response.length - 2), "bck", clickedButton)
+          calledFromBck = false
+        } else if (response.substring(response.length - 2, response.length) == "ac") {
+          handleResponse("true"+response.substring(response.length - 10, response.length - 2), "bck", clickedButton)
+          console.log("TAKEBACK ACCEPTED")
         }
-        
+      } else if (response.substring(0, 6) == "reject") {
+        console.log("TAKEBACK REJECTED")
       } else {
-            var message = "No moves left to Undo"
-            if (!document.getElementById("playerText").innerHTML.includes(message)) {
-                document.getElementById("playerText").innerHTML =
-                document.getElementById("playerText").innerHTML +
-                "\t" + message;
-            }
+        var message = "No moves left to Undo"
+        if (!document.getElementById("playerText").innerHTML.includes(message)) {
+            document.getElementById("playerText").innerHTML =
+            document.getElementById("playerText").innerHTML +
+            "\t" + message;
         }
+
+        if (gameMode == 2 && !calledFromBck && thisIsWhitePlayer == whiteTurn) {
+          getOpponentMove()
+        }
+      }
         // if (!thisIsWhitePlayer) {
         //   getOpponentMove()
         // }
@@ -418,15 +429,20 @@ $(document).ready(function () {
         getAIMove()
       }
     } else if (mode == "opp") {
-      console.log("Server opp:", response)
-      var respLen = response.length
-      moveDisplayedPiece = response.substring(respLen - 4, respLen - 2)
-      var movedTo = response.substring(respLen - 2, respLen)
-      console.log("MoveDisplayedPiece:", response.substring(respLen - 4, respLen - 2), "MovedTo", response.substring(respLen - 2, respLen))
-      console.log("Passing on response:", response.substring(0, respLen - 4))
-      calledMovFromOpp = true
-      handleResponse(response.substring(0, respLen - 4), "mov", $('#' + movedTo))
-      calledMovFromOpp = false
+      if (response.substring(0,3) == "bck") {
+        console.log("TAKE BACK MODAL SHOWN")
+        $("#takeBackMoveModal").modal('show')
+      } else {
+        console.log("Server opp:", response)
+        var respLen = response.length
+        moveDisplayedPiece = response.substring(respLen - 4, respLen - 2)
+        var movedTo = response.substring(respLen - 2, respLen)
+        console.log("MoveDisplayedPiece:", response.substring(respLen - 4, respLen - 2), "MovedTo", response.substring(respLen - 2, respLen))
+        console.log("Passing on response:", response.substring(0, respLen - 4))
+        calledMovFromOpp = true
+        handleResponse(response.substring(0, respLen - 4), "mov", $('#' + movedTo))
+        calledMovFromOpp = false
+      }
     }
   }
 
@@ -452,8 +468,19 @@ $(document).ready(function () {
   });
 
   $("#undo").click(function () {
+    if (gameMode == 2) {
+      document.getElementById("takeBackText").style.visibility = "visible"
+    }
       makeFetch("bck ", "empty", "bck", $(this))
   });
+
+  $("#acceptTakeBack").click(function () {
+    makeFetch("atb ", "empty", "bck", $(this))
+  })
+
+  $("#rejectTakeBack").click(function () {
+    makeFetch("rtb ", "empty", "bck", $(this))
+  })
 
   $(".piecePromobutton").click(function () {
     // var myForm = document.createElement("FORM");
