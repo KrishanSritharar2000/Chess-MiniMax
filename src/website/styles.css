@@ -9,12 +9,17 @@
   grid-row-gap: 0px;
   grid-gap: 0px;
 }
-
+h2 {
+  color: white;
+}
 body {
     padding: 0;
     margin: 0;
     /* 00AAF0 */
-    background: linear-gradient(to right, #00AAF0, #00FF6F);
+    /* background: linear-gradient(to top, #00AAF0, #00FF6F); */
+    background: linear-gradient(180deg, rgb(27, 25, 25), rgb(58, 56, 56));
+    background-repeat: no-repeat;
+    background-attachment: fixed  ;
 }
 
 .dark {

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chess {{.GameMode}}</title>
+    <title>Chess {{.GameMode}} {{.UserID}}</title>
     <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"> -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/css/mdb.min.css" rel="stylesheet"/>
@@ -82,7 +82,12 @@
 
     <div class="chess-grid">
       {{$colourLight := true}}  
-      {{$order := 57}}
+      {{$order := 8}}
+      {{$white := false}}
+      {{if eq .UserID .WhitePlayer}}
+        {{$order = 57}}
+        {{$white = true}}
+      {{end}}
       {{$row := 0}}
       {{range $board:=.Game.Board.Board}}
         {{$col := 0}}
@@ -94,11 +99,19 @@
                   {{if (eq .Symbol " ")}} name="empty" {{else if .IsBlack}} name="black" {{else}} name="white" {{end}}>
                   </button>
           {{$col = add $col 1}}
-          {{$order = add $order 1}}
+          {{if eq $white true}}
+            {{$order = add $order 1}}
+          {{else}}
+            {{$order = minus $order 1}}
+          {{end}}
           {{$colourLight = not $colourLight}}
         {{end}}
         {{$row = add $row 1}}
-        {{$order = minus $order 16}}
+        {{if eq $white true}}
+          {{$order = minus $order 16}}
+        {{else}}
+          {{$order = add $order 16}}
+        {{end}}
         {{$colourLight = not $colourLight}}
       {{end}}
     </div>

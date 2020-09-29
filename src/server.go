@@ -24,10 +24,10 @@ func pairPlayers() {
 		fmt.Println("\n\nGot First player", firstPlayer, "\n\n")
 		secondPlayer = <- session
 		fmt.Println("\n\nGot second player", secondPlayer, "\n\n")
-		firstPlayer.whitePlayer = firstPlayer.userID
-		firstPlayer.blackPlayer = secondPlayer.userID
-		secondPlayer.whitePlayer = firstPlayer.userID
-		secondPlayer.blackPlayer = secondPlayer.userID
+		firstPlayer.WhitePlayer = firstPlayer.UserID
+		firstPlayer.BlackPlayer = secondPlayer.UserID
+		secondPlayer.WhitePlayer = firstPlayer.UserID
+		secondPlayer.BlackPlayer = secondPlayer.UserID
 		secondPlayer.Game = firstPlayer.Game
 	}
 }
@@ -35,8 +35,8 @@ func pairPlayers() {
 type User struct {
 	Game     *Game
 	GameMode int //0 local PvP, 1 AI, 2 Online PvP
-	userID string// ip address
-	whitePlayer, blackPlayer string //ip address of players 
+	UserID string// ip address
+	WhitePlayer, BlackPlayer string //ip address of players 
 	lastMove string
 	undoMoveRequested string
 	lastMadeMove, secondLastMove *Move
@@ -64,10 +64,10 @@ func GetUserAndGame(r *http.Request) (*User, *Game) {
 func GetOpponent(u *User) (*User) {
 	if (u.GameMode == 2) {
 		var opp *User
-		if (u.userID == u.whitePlayer) {
-			opp, _ = clients[u.blackPlayer]
+		if (u.UserID == u.WhitePlayer) {
+			opp, _ = clients[u.BlackPlayer]
 		} else {
-			opp, _ = clients[u.whitePlayer]
+			opp, _ = clients[u.WhitePlayer]
 		}
 		return opp
 	}
@@ -85,16 +85,16 @@ func SetGameMode(userIP string, gameMode int) {
 func ClearOnlineGame(user *User) {
 	var ok bool
 	var opponent *User
-	if user.whitePlayer == user.userID {
-		opponent, ok = clients[user.blackPlayer]
+	if user.WhitePlayer == user.UserID {
+		opponent, ok = clients[user.BlackPlayer]
 	} else {
-		opponent, ok = clients[user.whitePlayer]
+		opponent, ok = clients[user.WhitePlayer]
 	}
 	if ok {
-		user.whitePlayer = ""
-		user.blackPlayer = ""
-		opponent.whitePlayer = ""
-		opponent.blackPlayer = ""
+		user.WhitePlayer = ""
+		user.BlackPlayer = ""
+		opponent.WhitePlayer = ""
+		opponent.BlackPlayer = ""
 		fmt.Println("Cleared game opponent data")
 	}
 }
@@ -112,7 +112,7 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Print("Error during executing: ", err)
 		}
-		// if usr.whitePlayer != "" {
+		// if usr.WhitePlayer != "" {
 		// 	ClearOnlineGame(usr)
 		// }
 	case "POST":
@@ -125,12 +125,12 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 		}
 		if num == 2 {
 			fmt.Println("Find Opponent")
-			SetGameMode(usr.userID, num)
+			SetGameMode(usr.UserID, num)
 			session <- usr
-			for usr.blackPlayer == "" {}
+			for usr.BlackPlayer == "" {}
 			fmt.Println("These are the users:", usr)
 		} else {
-			SetGameMode(usr.userID, num)
+			SetGameMode(usr.UserID, num)
 		}
 		fmt.Fprintf(w, "success")
 		fmt.Println("To Client: success GameMode:", num, "User:", usr)
@@ -167,6 +167,7 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Print("Error parsing template: ", err)
 		}
+		fmt.Println(r.RemoteAddr, usr.UserID == usr.WhitePlayer)
 		err = tmpl.Execute(w, usr)
 		if err != nil {
 			log.Print("Error during executing: ", err)
@@ -303,8 +304,8 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Gamemode:", usr.GameMode)
 			if usr.GameMode == 2 {
 				fmt.Println("User:", usr)
-				fmt.Println("response:",strconv.FormatBool(usr.whitePlayer == usr.userID))
-				fmt.Fprintf(w, strconv.FormatBool(usr.whitePlayer == usr.userID) + strconv.Itoa(usr.GameMode))
+				fmt.Println("response:",strconv.FormatBool(usr.WhitePlayer == usr.UserID))
+				fmt.Fprintf(w, strconv.FormatBool(usr.WhitePlayer == usr.UserID) + strconv.Itoa(usr.GameMode))
 			} else if usr.GameMode == 1 {
 				//change later
 				fmt.Fprintf(w, "true" + strconv.Itoa(usr.GameMode))	
@@ -319,8 +320,8 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 			// 	}
 			// }
 			fmt.Println("GOT OPP REQUEST FROM", r.RemoteAddr)
-			fmt.Println("Current Turn:", game.IsWhiteTurn, usr.userID == usr.whitePlayer, usr.userID == usr.blackPlayer)
-			// for game.IsWhiteTurn != (usr.userID == usr.whitePlayer) {}
+			fmt.Println("Current Turn:", game.IsWhiteTurn, usr.UserID == usr.WhitePlayer, usr.UserID == usr.BlackPlayer)
+			// for game.IsWhiteTurn != (usr.UserID == usr.WhitePlayer) {}
 			opp := GetOpponent(usr)
 			for (opp.lastMove == "" || strings.Contains(opp.lastMove, "false")) && opp.undoMoveRequested == "" {}
 			if opp.undoMoveRequested == "" {
