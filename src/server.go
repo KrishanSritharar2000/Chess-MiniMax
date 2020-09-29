@@ -259,7 +259,7 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 			game.Moves = &MoveStack{}
 			fmt.Fprintf(w, "reload")
 		case "ply":
-			fmt.Fprintf(w, strconv.FormatBool(game.IsWhiteTurn)+getCheckMessage(game, true))
+			fmt.Fprintf(w, strconv.FormatBool(game.IsWhiteTurn)+strconv.Itoa(usr.Game.Moves.Size())+getCheckMessage(game, true))
 		case "bck":
 			if usr.GameMode == 2 {
 				fmt.Println("Requested undo move from:", r.RemoteAddr)

@@ -11,6 +11,7 @@ $(document).ready(function () {
   var calledMovFromOpp = false
   var calledFromBck = false
   var gameMode = 0
+  var movesMade = 0
   var originalTakeBackMessage = document.getElementById("takeBackText").innerHTML
   var originalTakeBackMessageColour = document.getElementById("takeBackText").style.color
   getPlayerColourAndMode()
@@ -51,9 +52,9 @@ $(document).ready(function () {
 
   function setPlayerText() {
     if (whiteTurn) {
-        document.getElementById("playerText").innerHTML = "White's Turn";
+        document.getElementById("playerText").innerHTML = "Moves: " + movesMade + " White's Turn";
       } else {
-        document.getElementById("playerText").innerHTML = "Black's Turn";
+        document.getElementById("playerText").innerHTML = "Moves:" + movesMade + " Black's Turn";
       }
   }
 
@@ -170,6 +171,11 @@ $(document).ready(function () {
     makeFetch("aim", "empty", "opp", $(this))
   }
 
+  function isLetter(char){
+    return ( (char >= 'A' &&  char <= 'Z') ||
+             (char >= 'a' &&  char <= 'z') );
+}
+
   function movePiece(newPieceID, oldPieceID) {
     const newPiece = document.getElementById(newPieceID);
     const oldPiece = document.getElementById(oldPieceID);
@@ -251,6 +257,7 @@ $(document).ready(function () {
         clearDisplayedMoves();
         console.log("Before calling move piece:", clickedButton.prop("id"), moveDisplayedPiece)
         movePiece(clickedButton.prop("id"), moveDisplayedPiece);
+        movesMade++
         swapTurn();
       } else if (result.substring(0, 6) === "castle") {
         console.log(
@@ -299,10 +306,12 @@ $(document).ready(function () {
         return;
       }
       checkText(result.substring(result.length - 5, result.length) === "check");
-      if (!calledMovFromOpp &&gameMode == 2) {
-        getOpponentMove()
-      } else if (!calledMovFromOpp && gameMode == 1) {
-        getAIMove()
+      if (!calledMovFromOpp) {
+        if (gameMode == 2) {
+          getOpponentMove()
+        } else if (gameMode == 1) {
+          getAIMove()
+        }
       }
     } else if (mode == "pwn") {
         if (response.substring(0, 4) == "true") {
@@ -340,21 +349,31 @@ $(document).ready(function () {
         }
     } else if (mode == "ply") {
         whiteTurn = (response.substring(0, 4) === "true" ? true : false)
+        index = whiteTurn ? 4 : 5
+        console.log(index, response.charAt(index))
+        while (!isLetter(response.charAt(index)) && index <= response.length) {
+          console.log(response.charAt(index))
+          index++
+        }
+        console.log(index)
+
+        movesMade = parseInt(response.substring(whiteTurn ? 4 : 5, index-1 == response.length ? index + 1 : index))
+        console.log("Moves ", response.substring(whiteTurn ? 4 : 5, index), " Made:", movesMade, response.substring(4,5), index)
         setPlayerText()
-        if (staleText(response.substring(response.length - 5, response.length) === "stale")) {
+        if (staleText(response.includes("stale"))) {
             return;
           }
-        if (mateText(response.substring(response.length - 4, response.length) === "mate")) {
+        if (mateText(response.includes("mate"))) {
             return;
         }
-        checkText(response.substring(response.length - 5, response.length) === "check");
-        if (!thisIsWhitePlayer && gameMode == 2) {
+        checkText(response.includes("check"));
+        if (thisIsWhitePlayer != whiteTurn && gameMode == 2) {
           getOpponentMove()
         }
     } else if (mode == "bck") {
         console.log("SERVER bck:", response)
         if (response.substring(0, 4) === "true") {
-
+            movesMade--
             console.log("coord",response.substring(4,5), response.substring(5,6), response.substring(8,9) + response.substring(9,10))
             movePiece(response.substring(4,5) + response.substring(5,6), response.substring(8,9) + response.substring(9,10))
             const newPiece = document.getElementById(response.substring(8,9) + response.substring(9,10));
@@ -451,6 +470,10 @@ $(document).ready(function () {
         console.log("Server opp:", response)
         var respLen = response.length
         moveDisplayedPiece = response.substring(respLen - 4, respLen - 2)
+        if (document.getElementById(moveDisplayedPiece).getAttribute("value") == " ") {
+          console.log("Invalid opp request")
+          return
+        }
         var movedTo = response.substring(respLen - 2, respLen)
         console.log("MoveDisplayedPiece:", response.substring(respLen - 4, respLen - 2), "MovedTo", response.substring(respLen - 2, respLen))
         console.log("Passing on response:", response.substring(0, respLen - 4))
@@ -484,13 +507,26 @@ $(document).ready(function () {
 
   $("#undo").click(function () {
     if (gameMode == 2) {
-      if (document.getElementById("takeBackText").innerHTML != originalTakeBackMessage) {
-        document.getElementById("takeBackText").innerHTML = originalTakeBackMessage
+      if (thisIsWhitePlayer == whiteTurn) {
+        if (movesMade < 2) {
+          document.getElementById("takeBackText").innerHTML = "Cannot undo any more moves<i class='fas fa-times ml-2 text-white'></i>"
+          document.getElementById("takeBackText").style.color = originalTakeBackMessageColour
+          document.getElementById("takeBackText").style.visibility = "visible"
+          return
+        }
+        if (document.getElementById("takeBackText").innerHTML != originalTakeBackMessage) {
+          document.getElementById("takeBackText").innerHTML = originalTakeBackMessage
+          document.getElementById("takeBackText").style.color = originalTakeBackMessageColour
+        }
+        document.getElementById("takeBackText").style.visibility = "visible"
+      } else {
+        document.getElementById("takeBackText").innerHTML = "Can only undo move on your turn<i class='fas fa-times-circle ml-2 text-white'></i>"
         document.getElementById("takeBackText").style.color = originalTakeBackMessageColour
+        document.getElementById("takeBackText").style.visibility = "visible"
+        return
       }
-      document.getElementById("takeBackText").style.visibility = "visible"
     }
-      makeFetch("bck ", "empty", "bck", $(this))
+    makeFetch("bck ", "empty", "bck", $(this))
   });
 
   $("#acceptTakeBack").click(function () {
