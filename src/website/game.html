@@ -15,18 +15,18 @@
   <body>
     <h2 id="playerText">White's Turn</h2>
     <form action="/" method="GET">
-        <button class="btn btn-primary btn-rounded waves-effect" type="submit">Back</button>
-        
-  
-        <button class="btn btn-primary btn-rounded waves-effect" id="restart" type="button">Restart</button>
-        <button class="btn btn-primary btn-rounded waves-effect" id="undo" type="button">Undo Move</button>
-        <button class="btn btn-primary btn-rounded waves-effect" id="plycol" type="button"></button>
+      <div style="text-align: center;">
+        <button class="btn btn-rounded waves-effect btnEffect" type="submit">Back</button> 
+        <button class="btn btn-rounded waves-effect btnEffect" id="restart" type="button">Restart</button>
+        <button style="visibility: hidden;" class="btn btn-primary btn-rounded waves-effect" id="plycol" type="button"></button>
+        <p id="takeBackText" style="visibility: hidden; color: white; display: inline-block;" disabled>Takeback proposed to opponent<i class="fas fa-undo-alt ml-2 text-white"></i></p>
+        <button class="btn btn-rounded waves-effect btnEffect" id="undo" type="button">Takeback</button>
 
         <!-- <div class="badge badge-dark text-wrap d-inline-flex align-items-center justify-content-start" style="width: 13rem; height: 3rem; display: inline-block;" >
           <span class="align-middle"style="color: green;">Takeback proposed to opponent</span>
         </div> -->
-        <p id="takeBackText" style="visibility: hidden; color: white; display: inline-block;">Takeback proposed to opponent<i class="fas fa-undo-alt ml-2 text-white"></i></p>
-      </span>
+      </div>
+      <!-- </span> -->
       <!-- <button class="btn btn-primary btn-rounded waves-effect" type="button" data-toggle="modal" data-target="#takeBackMoveModal">Take Back</button> -->
     
     </form>
