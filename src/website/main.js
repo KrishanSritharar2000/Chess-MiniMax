@@ -292,7 +292,7 @@ $(document).ready(function () {
         return;
       }
       checkText(result.substring(result.length - 5, result.length) === "check");
-      if (!calledMovFromOpp && gameMode == 2) {
+      if (!calledMovFromOpp &&gameMode == 2) {
         getOpponentMove()
       } else if (!calledMovFromOpp && gameMode == 1) {
         getAIMove()
@@ -393,11 +393,11 @@ $(document).ready(function () {
 
             swapTurn()
         if (response.substring(response.length - 2, response.length) == "ai") {
+          handleResponse("true"+response.substring(response.length - 10, response.length - 2), "bck", clickedButton)
+        } else if (response.substring(response.length - 2, response.length) == "ac") {
           calledFromBck = true
           handleResponse("true"+response.substring(response.length - 10, response.length - 2), "bck", clickedButton)
           calledFromBck = false
-        } else if (response.substring(response.length - 2, response.length) == "ac") {
-          handleResponse("true"+response.substring(response.length - 10, response.length - 2), "bck", clickedButton)
           console.log("TAKEBACK ACCEPTED")
         }
       } else if (response.substring(0, 6) == "reject") {
@@ -409,11 +409,11 @@ $(document).ready(function () {
             document.getElementById("playerText").innerHTML +
             "\t" + message;
         }
-
-        if (gameMode == 2 && !calledFromBck && thisIsWhitePlayer == whiteTurn) {
+      }
+        if (gameMode == 2 && !calledFromBck && thisIsWhitePlayer != whiteTurn) {
           getOpponentMove()
         }
-      }
+      
         // if (!thisIsWhitePlayer) {
         //   getOpponentMove()
         // }
