@@ -11,6 +11,8 @@ $(document).ready(function () {
   var calledMovFromOpp = false
   var calledFromBck = false
   var gameMode = 0
+  var originalTakeBackMessage = document.getElementById("takeBackText").innerHTML
+  var originalTakeBackMessageColour = document.getElementById("takeBackText").style.color
   getPlayerColourAndMode()
   console.log("THIS IS THE PLAYER COLOUR:", thisIsWhitePlayer)
   var promotedPawnLocation = ""
@@ -239,6 +241,11 @@ $(document).ready(function () {
     } else if (mode == "mov") {
       console.log("Operating mode: mov");
       console.log("Reponse from server mov:", response, "length:", response.length);
+      if (document.getElementById("takeBackText").style.visibility == "visible") {
+        document.getElementById("takeBackText").innerHTML = originalTakeBackMessage
+        document.getElementById("takeBackText").style.color = originalTakeBackMessageColour
+        document.getElementById("takeBackText").style.visibility = "hidden"
+      }
       var result = response.split(":")[1];
       if (result.substring(0, 4) === "true") {
         clearDisplayedMoves();
@@ -395,6 +402,10 @@ $(document).ready(function () {
         if (response.substring(response.length - 2, response.length) == "ai") {
           handleResponse("true"+response.substring(response.length - 10, response.length - 2), "bck", clickedButton)
         } else if (response.substring(response.length - 2, response.length) == "ac") {
+          if (document.getElementById("takeBackText").style.visibility == "visible") {
+            document.getElementById("takeBackText").innerHTML = "Takeback accepted by opponent<i class='fas fa-check ml-2 text-success'></i>"
+            document.getElementById("takeBackText").style.color = "green"
+          }
           calledFromBck = true
           handleResponse("true"+response.substring(response.length - 10, response.length - 2), "bck", clickedButton)
           calledFromBck = false
@@ -402,6 +413,10 @@ $(document).ready(function () {
         }
       } else if (response.substring(0, 6) == "reject") {
         console.log("TAKEBACK REJECTED")
+        if (document.getElementById("takeBackText").style.visibility == "visible") {
+          document.getElementById("takeBackText").innerHTML = "Takeback rejected by opponent<i class='fas fa-times ml-2 text-danger'></i>"
+          document.getElementById("takeBackText").style.color = "#df4759"
+        }
       } else {
         var message = "No moves left to Undo"
         if (!document.getElementById("playerText").innerHTML.includes(message)) {
@@ -469,6 +484,10 @@ $(document).ready(function () {
 
   $("#undo").click(function () {
     if (gameMode == 2) {
+      if (document.getElementById("takeBackText").innerHTML != originalTakeBackMessage) {
+        document.getElementById("takeBackText").innerHTML = originalTakeBackMessage
+        document.getElementById("takeBackText").style.color = originalTakeBackMessageColour
+      }
       document.getElementById("takeBackText").style.visibility = "visible"
     }
       makeFetch("bck ", "empty", "bck", $(this))
