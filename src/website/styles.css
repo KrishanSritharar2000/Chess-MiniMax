@@ -9,9 +9,15 @@
   grid-row-gap: 0px;
   grid-gap: 0px;
 }
-h2 {
+h2, h5 {
   color: white;
+  font-family: 'Lato', sans-serif;
 }
+
+p {
+  font-family: 'Lato', sans-serif;
+}
+
 body {
     padding: 0;
     margin: 0;
@@ -32,6 +38,38 @@ body {
 
 .dark:hover, .light:hover, .piecePromobutton:hover {
   opacity: 0.8 !important;
+}
+
+.options {
+  color: white;
+}
+
+#startGame {
+  position: absolute;
+  display: block;
+  width: 25%;
+}
+
+input[type=radio] {
+  border: 0px;
+  width: 100%;
+  height: 2em;
+}
+.getGame {
+  margin: 0;
+  position: absolute;
+  padding: 10% 60% 70% 10%;
+  /* top: 15%;
+  left: 50%;
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%); */
+}
+
+#titleMessage {
+  text-align: center;
+  border: 4px solid white;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 .button {

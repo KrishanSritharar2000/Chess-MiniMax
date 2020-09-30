@@ -52,10 +52,11 @@ $(document).ready(function () {
 
   function setPlayerText() {
     if (whiteTurn) {
-        document.getElementById("playerText").innerHTML = "Moves: " + movesMade + " White's Turn";
+        document.getElementById("playerText").innerHTML = "White's Turn";
       } else {
-        document.getElementById("playerText").innerHTML = "Moves:" + movesMade + " Black's Turn";
-      }
+        document.getElementById("playerText").innerHTML = "Black's Turn";
+    }
+    document.getElementById("moves").innerHTML = "Moves:  " + movesMade
   }
 
   function checkText(set) {
@@ -437,12 +438,9 @@ $(document).ready(function () {
           document.getElementById("takeBackText").style.color = "#df4759"
         }
       } else {
-        var message = "No moves left to Undo"
-        if (!document.getElementById("playerText").innerHTML.includes(message)) {
-            document.getElementById("playerText").innerHTML =
-            document.getElementById("playerText").innerHTML +
-            "\t" + message;
-        }
+          document.getElementById("takeBackText").innerHTML = "No moves left to Takeback<i class='fas fa-times ml-2 text-danger'></i>"
+          document.getElementById("takeBackText").style.color = "white"
+          document.getElementById("takeBackText").style.visibility = "visible"
       }
         if (gameMode == 2 && !calledFromBck && thisIsWhitePlayer != whiteTurn) {
           getOpponentMove()
@@ -456,7 +454,6 @@ $(document).ready(function () {
       console.log(response, response.substring(0, 4), thisIsWhitePlayer)
       gameMode = parseInt(response.slice(response.length - 1))
       console.log("THIS IS THE GAME MODE", gameMode, response.slice(response.length - 1))
-      document.getElementById("plycol").innerHTML = thisIsWhitePlayer ? "WHITE" : "BLACK"
       if (gameMode == 2 && thisIsWhitePlayer != whiteTurn) {
         getOpponentMove()
       } else if (gameMode == 1 && !thisIsWhitePlayer) {
