@@ -4,16 +4,68 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chess</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/css/mdb.min.css" rel="stylesheet"/>
-    <link href="/static/styles.css" rel="stylesheet" />
+      <!-- Font Awesome -->
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">
+<!-- Google Fonts -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
+<!-- Bootstrap core CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<!-- Material Design Bootstrap -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/css/mdb.min.css" rel="stylesheet">
+    <link href="/static/stylesTemplate.css" rel="stylesheet" />
     <script src="/static/home.js" defer></script>
     <link rel="icon" href="data:,">
   </head>
   <body>
     <h2 id="titleMessage">Lets Play Chess</h2>
     <form action="/game" method="GET" id="gameOptions">
-      
+
+      <div class="section over-hide z-bigger">
+        <input class="checkbox" type="checkbox" name="general" id="general">
+        <label class="for-checkbox" for="general"></label>
+        <div class="background-color"></div>
+        
+        <div class="section over-hide z-bigger">
+          <div class="container pb-5">
+            <div class="row justify-content-center pb-5">
+              <div class="col-12 pt-5">
+                <p class="mb-4 pb-2">Pick Your Colour</p>
+              </div>
+              <div class="col-12 pb-5">
+                <input class="checkbox-tools" type="radio" name="tools" id="tool-1" checked>
+                <label class="for-checkbox-tools" for="tool-1">White</label><!--
+                --><input class="checkbox-tools" type="radio" name="tools" id="tool-2">
+                <label class="for-checkbox-tools" for="tool-2">Black</label><!--
+                --><input class="checkbox-tools" type="radio" name="tools" id="tool-3">
+              </div>
+              <div class="col-12 pt-1">
+                <p class="mb-4 pb-2">Select Your Game Mode</p>
+              </div>
+              <div class="col-xl-10 pb-5">
+                <input class="checkbox-budget" type="radio" name="game" id="local">
+                <label class="for-checkbox-budget" for="local">
+                  <span data-hover="Play Locally">Play Locally</span>
+                </label>
+                  <input class="checkbox-budget" type="radio" name="game" id="ai">
+                <label class="for-checkbox-budget" for="ai">							
+                  <span data-hover="Battle the AI">Battle the AI</span>
+                </label>
+                  <input class="checkbox-budget" type="radio" name="game" id="online">
+                <label class="for-checkbox-budget" for="online">							
+                  <span data-hover="Play Online">Play Online</span>
+                </label>
+              </div>
+              <div class="col-12 pb-5">
+                <input class="checkbox-budget" type="submit" id="startGame"/>
+                <label class="for-checkbox-budget" for="startGame">
+                  <span data-hover="Launch Game">Launch Game</span>
+                </label>
+              </div>
+            </div>
+          </div>	
+        </div>
+      </div>
+      <!--
       <div class="getGame">
         <div class="options">
           <div class="custom-control custom-radio">
@@ -32,17 +84,20 @@
           </div>
         </div>
         <button class="btn btn-dark-green" type="submit" id="startGame">Start Game</button>
-        <!-- value="Start Game"/> -->
-        <!-- Start Game</button>
+
+        value="Start Game"/>
+         Start Game</button>
           <input type="submit" value="Start Game" /> -->
           <!-- <button class="btn btn-dark-green btn-rounded waves-effect" id="startGame" type="button" >
             <span class="spinner-border spinner-border-sm mr-2" id="rstSpinner" role="status" aria-hidden="true"></span>Test Button</button> -->
-          </div>
         </form>
         
         
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-  </body>
+  <!-- JQuery -->
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <!-- Bootstrap tooltips -->
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js"></script>
+  <!-- Bootstrap core JavaScript -->
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.min.js"></script>
+      </body>
 </html>
