@@ -75,9 +75,15 @@ func GetOpponent(u *User) (*User) {
 	return nil
 }
 
-func SetGameMode(userIP string, gameMode int) {
+func SetGameModeAndColour(userIP string, gameMode int, isWhite bool) {
 	if usr, ok := clients[userIP]; ok {
 		usr.GameMode = gameMode
+		if isWhite {
+			usr.WhitePlayer = usr.UserID
+		} else {
+			usr.BlackPlayer = usr.UserID
+		}
+		
 		fmt.Println("\nGAME MODE SET\n")
 	}
 }
@@ -119,18 +125,23 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 		r.ParseMultipartForm(0)
 		message := r.FormValue("option")
 		fmt.Println("Client in HomePage POST:", message)
-		num, err := strconv.Atoi(message)
+		num, err := strconv.Atoi(string(message[0]))
 		if err != nil {
 			log.Print("Error with message from Client: ", err)
 		}
+		choseToBeWhite := true
+		if string(message[1]) == "b" {
+			choseToBeWhite = false
+		}
+		fmt.Println("CHOSE TO BE WHITE: ", choseToBeWhite, string(message[1]))
 		if num == 2 {
 			fmt.Println("Find Opponent")
-			SetGameMode(usr.UserID, num)
+			SetGameModeAndColour(usr.UserID, num, choseToBeWhite)
 			session <- usr
 			for usr.BlackPlayer == "" {}
 			fmt.Println("These are the users:", usr)
 		} else {
-			SetGameMode(usr.UserID, num)
+			SetGameModeAndColour(usr.UserID, num, choseToBeWhite)
 		}
 		fmt.Fprintf(w, "success")
 		fmt.Println("To Client: success GameMode:", num, "User:", usr)

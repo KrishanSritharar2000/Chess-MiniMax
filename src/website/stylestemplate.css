@@ -200,6 +200,11 @@ mark{
 	box-shadow: 0 1x 4px 0 rgba(0, 0, 0, 0.05);
 }
 
+#startGame:checked + label, 
+#startGame:not(:checked) + label {
+	width: 350px;
+}
+
 .checkbox-budget:checked + label,
 .checkbox-budget:not(:checked) + label{
 	position: relative;
@@ -252,6 +257,7 @@ mark{
 	background-image: linear-gradient(138deg, var(--red), var(--yellow));
 	z-index: -1;
 }
+
 .checkbox-budget:checked + label span,
 .checkbox-budget:not(:checked) + label span{
 	position: relative;
