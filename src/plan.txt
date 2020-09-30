@@ -1,0 +1,50 @@
+make piece
+make piece move
+alterntae turn and move
+check for allowed moves
+determine check
+
+
+fix rook
+give image
+whos turn
+user message
+
+fix castle bug
+fix pawn jumping bug
+checkmate
+en passant piece removal
+piece promotion
+multiple instances
+treat different ips seperately
+fix en passant
+king moves next king
+stalemate
+back button
+make faster
+
+pvp
+ai
+modal for asking to restart game if ip already exists in map
+undo turn for online game - add to user struct undid move - check this in infinite loop  - modal to ask user to undo - only allow undo move on their turn
+----------------------------------
+All Above Done
+----------------------------------
+Still need to add
+Restart - ask opp before restart- add to select and send down channel
+Back - tell opp that their opponenet has left
+add modals for these
+
+close channels
+
+add table of online players
+given these players names
+give option to chose name
+give option to invite certain players to play 
+add model for player invitation
+
+make ai better
+make it less prefer checking and check if checking will result in a lost piece, if so dont do it. 
+fix castling and pawn promotion on ai - add pawn promotion to the generate moves logic
+add each possible move the piece can promote to
+castling bug must be todo with moving the rook - reset that bool value
