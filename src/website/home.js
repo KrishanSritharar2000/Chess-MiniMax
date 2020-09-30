@@ -28,9 +28,10 @@ $(document).ready(function () {
 
   $("#startGame").click(function () {
     var colourChosenIsWhite = "w"
-    if ($("black").prop("checked")) {
+    if ($("#black").prop("checked")) {
       colourChosenIsWhite = "b"
     }
+    console.log("colour", colourChosenIsWhite)
     var option = "0"
     if ($("#online").prop("checked")) {
       option = "2"

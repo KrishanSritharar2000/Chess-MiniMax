@@ -24,11 +24,37 @@ func pairPlayers() {
 		fmt.Println("\n\nGot First player", firstPlayer, "\n\n")
 		secondPlayer = <- session
 		fmt.Println("\n\nGot second player", secondPlayer, "\n\n")
-		firstPlayer.WhitePlayer = firstPlayer.UserID
-		firstPlayer.BlackPlayer = secondPlayer.UserID
-		secondPlayer.WhitePlayer = firstPlayer.UserID
-		secondPlayer.BlackPlayer = secondPlayer.UserID
-		secondPlayer.Game = firstPlayer.Game
+		if firstPlayer.UserID == secondPlayer.UserID {
+			//cannot play against yourself
+			// session <- firstPlayer
+			fmt.Println("same player tried to pair up")
+			continue
+		}
+		if (firstPlayer.WhitePlayer == "" && secondPlayer.WhitePlayer == "") ||
+			(firstPlayer.BlackPlayer == "" && secondPlayer.BlackPlayer == "") {
+				//chosen to be the same colour
+				if firstPlayer.UserID == firstPlayer.WhitePlayer {
+					firstPlayer.BlackPlayer = secondPlayer.UserID
+					secondPlayer.WhitePlayer = firstPlayer.UserID
+					secondPlayer.BlackPlayer = secondPlayer.UserID
+				} else {
+					firstPlayer.WhitePlayer = secondPlayer.UserID
+					secondPlayer.BlackPlayer = firstPlayer.UserID
+					secondPlayer.WhitePlayer = secondPlayer.UserID
+				}
+		} else {
+			if firstPlayer.UserID == firstPlayer.WhitePlayer {
+				firstPlayer.BlackPlayer = secondPlayer.UserID
+				secondPlayer.WhitePlayer = firstPlayer.UserID
+			} else {
+				firstPlayer.WhitePlayer = secondPlayer.UserID
+				secondPlayer.BlackPlayer = firstPlayer.UserID
+			}
+		}
+		firstPlayer.Game = secondPlayer.Game
+		fmt.Println("assgined varaibles")
+		firstPlayer.findOpponent <- secondPlayer
+		secondPlayer.findOpponent <- firstPlayer
 	}
 }
 
@@ -37,9 +63,11 @@ type User struct {
 	GameMode int //0 local PvP, 1 AI, 2 Online PvP
 	UserID string// ip address
 	WhitePlayer, BlackPlayer string //ip address of players 
-	lastMove string
-	undoMoveRequested string
-	lastMadeMove, secondLastMove *Move
+	// undoMoveRequested string
+	// lastMadeMove, secondLastMove *Move
+	findOpponent chan *User
+	opponenetMove chan string
+	undoMove chan *Move
 
 }
 
@@ -55,7 +83,7 @@ func GetUserAndGame(r *http.Request) (*User, *Game) {
 	if usr, ok := clients[ip]; ok {
 		return usr, usr.Game
 	}
-	clients[ip] = &User{&Game{Board{}, true, &MoveStack{}}, 0, ip, "", "", "", "", &Move{}, &Move{}}
+	clients[ip] = &User{&Game{Board{}, true, &MoveStack{}}, 0, ip, "", "", make(chan *User), make(chan string), make(chan *Move)}
 	game := clients[ip].Game
 	SetupBoard(&game.Board)
 	return clients[ip], game
@@ -76,15 +104,20 @@ func GetOpponent(u *User) (*User) {
 }
 
 func SetGameModeAndColour(userIP string, gameMode int, isWhite bool) {
+	fmt.Println("Chose to be white:", isWhite)
 	if usr, ok := clients[userIP]; ok {
+		usr.Game = &Game{Board{}, true, &MoveStack{}}
+		SetupBoard(&usr.Game.Board)
 		usr.GameMode = gameMode
 		if isWhite {
 			usr.WhitePlayer = usr.UserID
+			usr.BlackPlayer = ""
 		} else {
 			usr.BlackPlayer = usr.UserID
+			usr.WhitePlayer = ""
 		}
 		
-		fmt.Println("\nGAME MODE SET\n")
+		fmt.Println("\nGAME MODE SET\n", usr)
 	}
 }
 
@@ -138,8 +171,8 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Find Opponent")
 			SetGameModeAndColour(usr.UserID, num, choseToBeWhite)
 			session <- usr
-			for usr.BlackPlayer == "" {}
-			fmt.Println("These are the users:", usr)
+			opp := <- usr.findOpponent
+			fmt.Println("These are the users:", usr, opp)
 		} else {
 			SetGameModeAndColour(usr.UserID, num, choseToBeWhite)
 		}
@@ -223,10 +256,11 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Is there a pawn promotion: ", game.Board.promotePawn)
 
 			checkText := getCheckMessage(game, result)
+			var lastMove string
 			//check for en passant
 			if result && game.Board.Board[destX][destY].Symbol == "P" && abs(startY-destY) == 1 && enPassantCheckPiece == " " {
 				fmt.Fprintf(w, "Result:"+"enpassant"+strconv.Itoa(startX)+strconv.Itoa(destY)+checkText)
-				usr.lastMove = "Result:"+"enpassant"+strconv.Itoa(startX)+strconv.Itoa(destY)+checkText
+				lastMove = "Result:"+"enpassant"+strconv.Itoa(startX)+strconv.Itoa(destY)+checkText
 			} else if result && game.Board.Board[destX][destY].Symbol == "K" && abs(startY-destY) == 2 {
 				var rookLocation string
 				if game.Board.Board[destX][destY].IsBlack {
@@ -243,21 +277,24 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 				fmt.Fprintf(w, "Result:"+"castle"+rookLocation+checkText)
-				usr.lastMove = "Result:"+"castle"+rookLocation+checkText
+				lastMove = "Result:"+"castle"+rookLocation+checkText
 			} else if game.Board.promotePawn && usr.GameMode != 1 && usr.Game.IsWhiteTurn == true {
 				game.Board.promotePawn = false
 				fmt.Println("CHANGED PAWN PROMOTE BACK TO: ", game.Board.promotePawn)
 				fmt.Fprintf(w, "Result:"+"pwn"+checkText)
-				usr.lastMove = "Result:"+"pwn"+checkText
+				lastMove = "Result:"+"pwn"+checkText
 			} else {
 				fmt.Println("Result:" + strconv.FormatBool(result) + checkText)
 				fmt.Fprintf(w, "Result:"+strconv.FormatBool(result)+checkText)
-				usr.lastMove = "Result:"+strconv.FormatBool(result)+checkText
+				lastMove = "Result:"+strconv.FormatBool(result)+checkText
 			}
 			if game.Board.promotePawn {
 				game.Board.promotePawn = false
 			}
-
+			if result && usr.GameMode == 2{
+				fmt.Println("Sent")
+				usr.opponenetMove <- lastMove
+			}
 			fmt.Println("This is the move stack:", game.Moves)
 		case "pwn":
 			x, y := int(rest[0])-int('0'), int(rest[1])-int('0')
@@ -275,22 +312,25 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 		case "bck":
 			if usr.GameMode == 2 {
 				fmt.Println("Requested undo move from:", r.RemoteAddr)
-				usr.undoMoveRequested = "true"
-				opp := GetOpponent(usr)
-				for opp.undoMoveRequested == "" {}
-				opp.undoMoveRequested = ""
-				if usr.undoMoveRequested == "rtb" {
+				usr.undoMove <- &Move{}
+				// for opp.undoMoveRequested == "" {}
+				move1 := <- usr.undoMove
+				move2 := <- usr.undoMove
+				
+				// opp.undoMoveRequested = ""
+				// if usr.undoMoveRequested == "rtb" {
+				if *move1 == (Move{}) {
 					fmt.Fprintf(w, "reject")
-					usr.undoMoveRequested = ""
+					// usr.undoMoveRequested = ""
 					return
 				}
-				usr.undoMoveRequested = ""
+				// usr.undoMoveRequested = ""
 				fmt.Println(r.RemoteAddr, "take back accepted by opponent")
-				move := usr.lastMadeMove
-				move2 := usr.secondLastMove
-				fmt.Fprintf(w, "true" + strconv.Itoa(move.From.x) + strconv.Itoa(move.From.y) + string(move.From.Symbol) + string(strconv.FormatBool(move.From.IsBlack)[0]) + strconv.Itoa(move.To.x) + strconv.Itoa(move.To.y) + string(move.To.Symbol) + string(strconv.FormatBool(move.To.IsBlack)[0]) + strconv.Itoa(move2.From.x) + strconv.Itoa(move2.From.y) + string(move2.From.Symbol) + string(strconv.FormatBool(move2.From.IsBlack)[0]) + strconv.Itoa(move2.To.x) + strconv.Itoa(move2.To.y) + string(move2.To.Symbol) + string(strconv.FormatBool(move2.To.IsBlack)[0]) + "ac")
-				usr.lastMadeMove = &Move{}
-				usr.secondLastMove = &Move{}
+				// move := usr.lastMadeMove
+				// move2 := usr.secondLastMove
+				fmt.Fprintf(w, "true" + strconv.Itoa(move1.From.x) + strconv.Itoa(move1.From.y) + string(move1.From.Symbol) + string(strconv.FormatBool(move1.From.IsBlack)[0]) + strconv.Itoa(move1.To.x) + strconv.Itoa(move1.To.y) + string(move1.To.Symbol) + string(strconv.FormatBool(move1.To.IsBlack)[0]) + strconv.Itoa(move2.From.x) + strconv.Itoa(move2.From.y) + string(move2.From.Symbol) + string(strconv.FormatBool(move2.From.IsBlack)[0]) + strconv.Itoa(move2.To.x) + strconv.Itoa(move2.To.y) + string(move2.To.Symbol) + string(strconv.FormatBool(move2.To.IsBlack)[0]) + "ac")
+				// usr.lastMadeMove = &Move{}
+				// usr.secondLastMove = &Move{}
 				return
 			}
 			result, move := game.undoTurn()
@@ -334,25 +374,30 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Current Turn:", game.IsWhiteTurn, usr.UserID == usr.WhitePlayer, usr.UserID == usr.BlackPlayer)
 			// for game.IsWhiteTurn != (usr.UserID == usr.WhitePlayer) {}
 			opp := GetOpponent(usr)
-			for (opp.lastMove == "" || strings.Contains(opp.lastMove, "false")) && opp.undoMoveRequested == "" {}
-			if opp.undoMoveRequested == "" {
-				lastMove := opp.lastMove
-				fmt.Println("This is the last move:", lastMove)
-				fmt.Println("This is the user:", usr)
-				fmt.Println("This is the opp:", opp)
-				opp.lastMove = ""
-				val, ok := usr.Game.Moves.Peek()
-				fmt.Println("This is the val and ok:", val, ok)
-				if ok {
-					fmt.Fprintf(w, lastMove + strconv.Itoa(val.From.x) + strconv.Itoa(val.From.y) + strconv.Itoa(val.To.x) + strconv.Itoa(val.To.y))
-				} else {
-					fmt.Fprintf(w, "false")
-				}
-				fmt.Println("This is the last move:", lastMove + strconv.Itoa(val.From.x) + strconv.Itoa(val.From.y) + strconv.Itoa(val.To.x) + strconv.Itoa(val.To.y))
-			} else {
-				fmt.Println("Asked ", r.RemoteAddr, "for modal")
-				fmt.Fprintf(w, "bck")
+			if opp == nil {
+				fmt.Fprintf(w, "false")
+				return
 			}
+			var lastMove string
+			select {
+				case lastMove = <- opp.opponenetMove:
+					fmt.Println("This is the move stackL", usr.Game.Moves)
+					fmt.Println("This is the last move:", lastMove)
+					fmt.Println("This is the user:", usr)
+					fmt.Println("This is the opp:", opp)
+					val, ok := usr.Game.Moves.Peek()
+					fmt.Println("This is the val and ok:", val, ok)
+					if ok {
+						fmt.Fprintf(w, lastMove + strconv.Itoa(val.From.x) + strconv.Itoa(val.From.y) + strconv.Itoa(val.To.x) + strconv.Itoa(val.To.y))
+					} else {
+						fmt.Fprintf(w, "false")
+					}
+					fmt.Println("This is the last move:", lastMove + strconv.Itoa(val.From.x) + strconv.Itoa(val.From.y) + strconv.Itoa(val.To.x) + strconv.Itoa(val.To.y))
+				case <- opp.undoMove:
+					fmt.Println("Asked ", r.RemoteAddr, "for modal")
+					fmt.Fprintf(w, "bck")
+				}
+			// for (opp.lastMove == "" || strings.Contains(opp.lastMove, "false")) && opp.undoMoveRequested == "" {}
 		case "aim":
 			fmt.Println("GOT AIM REQUEST FROM", r.RemoteAddr)
 			start := time.Now()
@@ -368,18 +413,23 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 			//Assumes there are at least two moves on the move stack
 			_, move := game.undoTurn()
 			_, move2 := game.undoTurn()
-			opp.lastMadeMove = &move
-			opp.secondLastMove = &move2
+			// opp.lastMadeMove = &move
+			// opp.secondLastMove = &move2
 			fmt.Println("These are the moves", move, move2)
-			opp.undoMoveRequested = "atb"
-			usr.undoMoveRequested = "answered"
+			// opp.undoMoveRequested = "atb"
+			// usr.undoMoveRequested = "answered"
+			opp.undoMove <- &move
+			opp.undoMove <- &move2
+
 			fmt.Fprintf(w, "true" + strconv.Itoa(move.From.x) + strconv.Itoa(move.From.y) + string(move.From.Symbol) + string(strconv.FormatBool(move.From.IsBlack)[0]) + strconv.Itoa(move.To.x) + strconv.Itoa(move.To.y) + string(move.To.Symbol) + string(strconv.FormatBool(move.To.IsBlack)[0]) + strconv.Itoa(move2.From.x) + strconv.Itoa(move2.From.y) + string(move2.From.Symbol) + string(strconv.FormatBool(move2.From.IsBlack)[0]) + strconv.Itoa(move2.To.x) + strconv.Itoa(move2.To.y) + string(move2.To.Symbol) + string(strconv.FormatBool(move2.To.IsBlack)[0]) + "ac")
-			undoMove(w, usr, game, "ac")
 		case "rtb":
-			fmt.Println(r.RemoteAddr + "rejected")
+			// fmt.Println(r.RemoteAddr + "rejected")
+			// opp := GetOpponent(usr)
+			// opp.undoMoveRequested = "rtb"
+			// usr.undoMoveRequested = "answered"
 			opp := GetOpponent(usr)
-			opp.undoMoveRequested = "rtb"
-			usr.undoMoveRequested = "answered"
+			opp.undoMove <- &Move{}
+			opp.undoMove <- &Move{}
 			fmt.Fprintf(w, "reject")
 		default:
 			log.Print("HTTP Request Error")
@@ -388,10 +438,6 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 		// respond to client's request
 		// fmt.Fprintf(w, "Server: %s \n", message+" | "+time.Now().Format(time.RFC3339))
 	}
-}
-
-func undoMove(w http.ResponseWriter, usr *User, game *Game, gameMode2acceptedText string) {
-
 }
 
 func getCheckMessage(game *Game, result bool) string {
