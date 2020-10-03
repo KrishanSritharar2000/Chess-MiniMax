@@ -498,7 +498,7 @@ func GetPort() string {
 	port := os.Getenv("PORT")
 	// Set a default port if there is nothing in the environment
 	if port == "" {
-		port = "7172"
+		port = "80"
 		fmt.Println("INFO: No PORT environment variable detected, defaulting to " + port)
 	}
 	return ":" + port
@@ -507,7 +507,7 @@ func GetPort() string {
 func main() {
 	go pairPlayers()
 	// StartGame()
-	http.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("/website"))))
+	http.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("./website"))))
 	http.HandleFunc("/", HomePage)
 	http.HandleFunc("/game", GamePage)
 
