@@ -494,6 +494,16 @@ func getString(slice []Position) string {
 	return word
 }
 
+func GetPort() string {
+	port := os.Getenv("PORT")
+	// Set a default port if there is nothing in the environment
+	if port == "" {
+		port = "7172"
+		fmt.Println("INFO: No PORT environment variable detected, defaulting to " + port)
+	}
+	return ":" + port
+}
+
 func main() {
 	go pairPlayers()
 	// StartGame()
@@ -501,7 +511,7 @@ func main() {
 	http.HandleFunc("/", HomePage)
 	http.HandleFunc("/game", GamePage)
 
-	log.Fatal(http.ListenAndServe(os.Getenv("PORT"), nil))
+	log.Fatal(http.ListenAndServe(GetPort(), nil))
 	// res, err := http.Get("http://www.google.com/robots.txt")
 	// if err != nil {
 	// 	log.Fatal(err)
