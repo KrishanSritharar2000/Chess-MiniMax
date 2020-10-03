@@ -143,7 +143,7 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		t, err := template.ParseFiles("./website/index.html")
+		t, err := template.ParseFiles("website/index.html")
 		if err != nil {
 			log.Print("Error parsing template: ", err)
 		}
@@ -209,7 +209,7 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 			"add": func(a, b int) int {
 				return a + b
 			},
-		}).ParseFiles("./website/game.html")
+		}).ParseFiles("website/game.html")
 		if err != nil {
 			log.Print("Error parsing template: ", err)
 		}
@@ -507,7 +507,7 @@ func GetPort() string {
 func main() {
 	go pairPlayers()
 	// StartGame()
-	http.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("./website"))))
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("website"))))
 	http.HandleFunc("/", HomePage)
 	http.HandleFunc("/game", GamePage)
 
