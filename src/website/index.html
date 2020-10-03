@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chess</title>
+    <title>Lets Play Chess!</title>
       <!-- Font Awesome -->
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">
 <!-- Google Fonts -->
@@ -14,7 +14,7 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/css/mdb.min.css" rel="stylesheet">
     <link href="/static/stylesTemplate.css" rel="stylesheet" />
     <script src="/static/home.js" defer></script>
-    <link rel="icon" href="data:,">
+    <link rel="icon" href="/static/imgs/kwhitel.png">
   </head>
   <body>
     <h2 id="titleMessage">Lets Play Chess</h2>
@@ -28,6 +28,9 @@
         <div class="section over-hide z-bigger">
           <div class="container pb-5">
             <div class="row justify-content-center pb-5">
+              <div class="col-12 pt-5">
+                <p style="font-size: 50px;"class="mb-4 pb-2">Lets Play Chess!</p>
+              </div>
               <div class="col-12 pt-5">
                 <p class="mb-4 pb-2">Pick Your Colour</p>
               </div>
@@ -45,11 +48,11 @@
                 <label class="for-checkbox-budget" for="local">
                   <span data-hover="Play Locally">Play Locally</span>
                 </label>
-                  <input class="checkbox-budget" type="radio" name="game" id="ai">
+                  <input class="checkbox-budget" type="radio" name="game" id="ai" checked>
                 <label class="for-checkbox-budget" for="ai">							
                   <span data-hover="Battle the AI">Battle the AI</span>
                 </label>
-                  <input class="checkbox-budget" type="radio" name="game" id="online" checked>
+                  <input class="checkbox-budget" type="radio" name="game" id="online">
                 <label class="for-checkbox-budget" for="online">							
                   <span data-hover="Play Online">Play Online</span>
                 </label>
