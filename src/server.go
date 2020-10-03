@@ -507,7 +507,7 @@ func GetPort() string {
 func main() {
 	go pairPlayers()
 	// StartGame()
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("src/website"))))
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("src/website/"))))
 	http.HandleFunc("/", HomePage)
 	http.HandleFunc("/game", GamePage)
 
