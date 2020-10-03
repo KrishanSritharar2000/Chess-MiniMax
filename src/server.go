@@ -143,7 +143,7 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		t, err := template.ParseFiles("website/index.html")
+		t, err := template.ParseFiles("./website/index.html")
 		if err != nil {
 			log.Print("Error parsing template: ", err)
 		}
@@ -209,7 +209,7 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 			"add": func(a, b int) int {
 				return a + b
 			},
-		}).ParseFiles("website/game.html")
+		}).ParseFiles("./website/game.html")
 		if err != nil {
 			log.Print("Error parsing template: ", err)
 		}
@@ -498,7 +498,7 @@ func GetPort() string {
 	port := os.Getenv("PORT")
 	// Set a default port if there is nothing in the environment
 	if port == "" {
-		port = "80"
+		port = "8080"
 		fmt.Println("INFO: No PORT environment variable detected, defaulting to " + port)
 	}
 	return ":" + port
