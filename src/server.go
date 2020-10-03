@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"os"
 )
 
 var (
@@ -500,7 +501,7 @@ func main() {
 	http.HandleFunc("/", HomePage)
 	http.HandleFunc("/game", GamePage)
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(os.Getenv("PORT"), nil))
 	// res, err := http.Get("http://www.google.com/robots.txt")
 	// if err != nil {
 	// 	log.Fatal(err)
