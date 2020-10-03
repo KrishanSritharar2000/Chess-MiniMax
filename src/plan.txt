@@ -48,3 +48,5 @@ make it less prefer checking and check if checking will result in a lost piece, 
 fix castling and pawn promotion on ai - add pawn promotion to the generate moves logic
 add each possible move the piece can promote to
 castling bug must be todo with moving the rook - reset that bool value
+
+detect leaving and remove from clients
