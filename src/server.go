@@ -71,8 +71,30 @@ type User struct {
 	undoMove      chan *Move
 }
 
+func ReadUserIP(r *http.Request) string {
+    IPAddress := r.Header.Get("X-Real-Ip")
+    if IPAddress == "" {
+        IPAddress = r.Header.Get("X-Forwarded-For")
+    }
+    if IPAddress == "" {
+        IPAddress = r.RemoteAddr
+    }
+    return IPAddress
+}
+
 func GetUserAndGame(r *http.Request) (*User, *Game) {
-	ip := r.RemoteAddr
+	// fmt.Println("This is from the get", r.Header.Get("X-Forwarded-For"))
+	// fmt.Println("go", r.Header.Get("X-Real-Ip"))
+	// fmt.Println("go", r.Header.Get("X-Forwarded-For"))
+	// fmt.Println("go", r.RemoteAddr)
+	// var ip = r.headers["x-forwarded-for"];
+	// if (ip){
+	//   var list = ip.split(",");
+	//   ip = list[list.length-1];
+	// } else {
+	//   ip = r.connection.remoteAddress;
+	// }
+	ip := ReadUserIP(r)
 	if string(ip[0]) == "[" {
 		//parse localHost IP
 		// ip = ip[:5] //since localhost is like [::1]:PORT
@@ -143,7 +165,7 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		t, err := template.ParseFiles("src/website/index.html")
+		t, err := template.ParseFiles("website/index.html")
 		if err != nil {
 			log.Print("Error parsing template: ", err)
 		}
@@ -209,7 +231,7 @@ func GamePage(w http.ResponseWriter, r *http.Request) {
 			"add": func(a, b int) int {
 				return a + b
 			},
-		}).ParseFiles("src/website/game.html")
+		}).ParseFiles("website/game.html")
 		if err != nil {
 			log.Print("Error parsing template: ", err)
 		}
@@ -507,7 +529,7 @@ func GetPort() string {
 func main() {
 	go pairPlayers()
 	// StartGame()
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("src/website/"))))
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("website/"))))
 	http.HandleFunc("/", HomePage)
 	http.HandleFunc("/game", GamePage)
 
